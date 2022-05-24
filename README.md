@@ -3,7 +3,7 @@ A tiny command line tool using WinGet to update Windows packages (written in Go)
 
 ### Reasons
 
-I recently was curious about the Go programming language (golang). So i started some re-development of my existing [wingetupd](https://github.com/MBODM/wingetupd) project. This version of `wingetupd.exe` (this time written in Go) shall become exactly the same tool as the original `wingetupd.exe` (which was written in C#).
+I recently was curious about the Go programming language (golang). So i started some re-development of my existing [wingetupd](https://github.com/MBODM/wingetupd) project. This version of `wingetupd.exe` (this time written in Go) shall become exactly the same tool as the original `wingetupd.exe` (which was written in C# and .NET).
 
 __Another reason was also:__ The original `wingetupd.exe` (as a .NET 6 self-contained application) is around 10-15 MB in size. The `wingetupd.exe` in Go will become more like 1-3 MB in size.
 
