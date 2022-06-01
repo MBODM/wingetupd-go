@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -37,11 +38,10 @@ func Run(params string) (WinGetResult, error) {
 		}
 		return WinGetResult{}, err
 	}
-	return WinGetResult{
-			ProcessCall:   getProcessCall(params),
-			ConsoleOutput: string(outputBytes),
-			ExitCode:      0},
-		nil
+	processCall := getProcessCall(params)
+	consoleOutput := string(outputBytes)
+	consoleOutput = removeProgressbarChars(consoleOutput)
+	return WinGetResult{ProcessCall: processCall, ConsoleOutput: consoleOutput, ExitCode: 0}, nil
 }
 
 func createCommand(params string) *exec.Cmd {
@@ -66,24 +66,23 @@ func convertExitCode(exitErrorExitCode int) int {
 }
 
 func removeProgressbarChars(winGetOutput string) string {
-	fmt.Println(fmt.Sprintf("%U", 8))
-	winGetOutput = strings.TrimSpace(winGetOutput)
-	winGetOutput = strings.ReplaceAll(winGetOutput, "", fmt.Sprintf("%U", 8))
-	winGetOutput = strings.ReplaceAll(winGetOutput, "|", "")
-	winGetOutput = strings.ReplaceAll(winGetOutput, "/", "")
-	winGetOutput = strings.ReplaceAll(winGetOutput, "-", "")
-	winGetOutput = strings.ReplaceAll(winGetOutput, `\`, "")
-
-	winGetOutput = strings.ReplaceAll(winGetOutput, "", "")
-
-	strings.TrimSpace(winGetOutput)
+	// Some "double-escape" via backticks AND double-backslash (`\\`) is a must,
+	// because the regexp.MustCompile() string argument needs to be escaped too.
+	progressBarChars := []string{`\\u0008`, "|", "/", "-", `\\`}
+	for _, progressBarChar := range progressBarChars {
+		winGetOutput = removeFirstSubStr(winGetOutput, progressBarChar)
+	}
 	return winGetOutput
 }
 
-// fn remove_progressbar_chars(output_string: &str) -> String {
-//     output_string
-//         .trim()
-//         .replacen(&['\u{0008}', '|', '/', '-', '\\'][..], "", 1)
-//         .trim()
-//         .to_string()
-// }
+func removeFirstSubStr(str string, subStr string) string {
+	// Above "double-escape" leads to the following string values,
+	// that work for regexp.MustCompile(), when looking like that:
+	// ^(.*?)\\u0008(.*)$
+	// ^(.*?)|(.*)$
+	// ^(.*?)/(.*)$
+	// ^(.*?)-(.*)$
+	// ^(.*?)\\(.*)$
+	regexp := regexp.MustCompile("^(.*?)" + subStr + "(.*)$")
+	return regexp.ReplaceAllString(str, "${1}$2")
+}
