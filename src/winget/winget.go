@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"regexp"
 	"strings"
 )
 
@@ -64,23 +63,16 @@ func convertExitCode(exitErrorExitCode int) int {
 }
 
 func removeProgressbarChars(winGetOutput string) string {
-	// Some "double-escape" via backticks AND double-backslash (`\\`) is a must,
-	// because the regexp.MustCompile() string argument needs to be escaped too.
-	progressBarChars := []string{`\\u0008`, "|", "/", "-", `\\`}
-	for _, progressBarChar := range progressBarChars {
-		winGetOutput = removeFirstSubStr(winGetOutput, progressBarChar)
+	if strings.Contains(winGetOutput, "\b") {
+		winGetOutput = strings.NewReplacer(
+			"\b|", "",
+			"\b/", "",
+			"\b-", "",
+			"\b\\", "",
+			"\b", "",
+		).Replace(winGetOutput)
 	}
+	winGetOutput = strings.Replace(winGetOutput, "\r", "", 1)
+	winGetOutput = strings.TrimSpace(winGetOutput)
 	return winGetOutput
-}
-
-func removeFirstSubStr(str string, subStr string) string {
-	// Above "double-escape" leads to the following string values,
-	// that work for regexp.MustCompile(), when looking like that:
-	// ^(.*?)\\u0008(.*)$
-	// ^(.*?)|(.*)$
-	// ^(.*?)/(.*)$
-	// ^(.*?)-(.*)$
-	// ^(.*?)\\(.*)$
-	regexp := regexp.MustCompile("^(.*?)" + subStr + "(.*)$")
-	return regexp.ReplaceAllString(str, "${1}$2")
 }
