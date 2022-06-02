@@ -23,9 +23,6 @@ func IsInstalled() bool {
 
 func Run(params string) (WinGetResult, error) {
 	params = strings.TrimSpace(params)
-	if params == "" {
-		return WinGetResult{}, errors.New("invalid argument")
-	}
 	execCommand := createCommand(params)
 	outputBytes, err := execCommand.Output()
 	if err != nil {
@@ -52,7 +49,8 @@ func createCommand(params string) *exec.Cmd {
 func getProcessCall(winGetParams string) string {
 	// To get a correct exit code (cause of the cmd /C workaround),
 	// the complete WinGet call has to be inside one single string.
-	return fmt.Sprintf("%s %s", winGetApp, winGetParams)
+	processCall := fmt.Sprintf("%s %s", winGetApp, winGetParams)
+	return strings.TrimSpace(processCall)
 }
 
 func convertExitCode(exitErrorExitCode int) int {
