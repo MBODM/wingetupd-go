@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mbodm/wingetupd-go/args"
+	"github.com/mbodm/wingetupd-go/collections"
+	"github.com/mbodm/wingetupd-go/config"
 	"github.com/mbodm/wingetupd-go/console"
+	"github.com/mbodm/wingetupd-go/core"
 )
 
 const AppName = "wingetupd"
@@ -14,42 +18,46 @@ const AppDate = "2022-06-02"
 
 func main() {
 	fmt.Println()
-	fmt.Println("%s %s (by %s %s)", AppName, AppVersion, AppAuthor, AppDate)
+	title := fmt.Sprintf("%s %s (by %s %s)", AppName, AppVersion, AppAuthor, AppDate)
+	fmt.Println(title)
 	fmt.Println()
 	if !args.Validate() {
 		console.ShowUsage(AppName, false)
-		Exit(1)
+		os.Exit(1)
 	}
 	if args.HelpExists() {
 		console.ShowUsage(AppName, true)
-		Exit(0)
+		os.Exit(0)
 	}
-	// wgr, err := winget.Run("search --exact --id Mozilla.Firefox")
-	// if err != nil {
-	// 	if wgr.ExitCode != 0 {
-	// 		fmt.Println("WinGet exitcode was", wgr.ExitCode)
-	// 		fmt.Printf("Error: %v.", err)
-	// 	} else {
-	// 		fmt.Printf("Error was: %v", err)
-	// 	}
-	// 	return
-	// }
-	// fmt.Println()
-	// fmt.Println("ProcessCall: ", wgr.ProcessCall)
-	// fmt.Println()
-	// fmt.Println("ConsoleOutput:")
-	// fmt.Println(wgr.ConsoleOutput)
-	// fmt.Println("ExitCode: ", wgr.ExitCode)
-	// fmt.Println()
-	// pr, err := parser.ParseListOutput(wgr.ConsoleOutput)
-	// if err != nil {
-	// 	fmt.Printf("%v", err)
-	// 	return
-	// }
-	// if pr.NewVersion == "" {
-	// 	pr.NewVersion = "---"
-	// }
-	// fmt.Println("Old version: ", pr.OldVersion)
-	// fmt.Println("New version: ", pr.NewVersion)
-	// fmt.Println("Has update: ", pr.HasUpdate)
+	err := core.Init()
+	if err != nil {
+		// todo
+		os.Exit(1)
+	}
+	packages, err := config.ReadPackageFile()
+	if err != nil {
+		// todo
+		os.Exit(1)
+	}
+	console.ShowPackageFileEntries(packages)
+	fmt.Println()
+	fmt.Print("Processing ...")
+	packageInfos, err := core.Analyze(packages, func() { fmt.Print(".") })
+	if err != nil {
+		// todo
+		os.Exit(1)
+	}
+	fmt.Println(" finished.")
+	fmt.Println()
+	evalResult := collections.Eval(packageInfos)
+	if evalResult.HasInvalidPackages() {
+		console.ShowInvalidPackagesError(evalResult.InvalidPackages)
+		os.Exit(1)
+	}
+	if evalResult.HasNonInstalledPackages() {
+		console.ShowNonInstalledPackagesError(evalResult.NonInstalledPackages)
+		os.Exit(1)
+	}
+	console.ShowSummary(*evalResult)
+	fmt.Println()
 }

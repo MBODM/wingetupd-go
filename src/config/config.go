@@ -6,16 +6,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 )
 
-const packageFile = "packages.txt"
+const pkgFileName = "packages.txt"
 
 func PackageFileExists() (bool, error) {
-	exePath, err := os.Executable()
+	pkgFile, err := getPkgFilePath()
 	if err != nil {
 		return false, errors.New("todo") // todo: chain
 	}
-	pkgFile := filepath.Join(exePath, packageFile)
 	_, err = os.Stat(pkgFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -29,7 +29,11 @@ func PackageFileExists() (bool, error) {
 
 func ReadPackageFile() ([]string, error) {
 	packages := []string{}
-	file, err := os.Open("packages.txt")
+	pkgFile, err := getPkgFilePath()
+	if err != nil {
+		return packages, errors.New("todo") // todo: chain
+	}
+	file, err := os.Open(pkgFile)
 	if err != nil {
 		return packages, errors.New("todo") // todo: chain
 	}
@@ -37,6 +41,7 @@ func ReadPackageFile() ([]string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
+		line = handleBOM(line)
 		line = strings.TrimSpace(line)
 		if line != "" {
 			packages = append(packages, line)
@@ -46,4 +51,24 @@ func ReadPackageFile() ([]string, error) {
 		return packages, errors.New("todo") // todo: chain
 	}
 	return packages, nil
+}
+
+func getPkgFilePath() (string, error) {
+	exeFile, err := os.Executable()
+	if err != nil {
+		return "", errors.New("todo") // todo: chain
+	}
+	exePath := filepath.Dir(exeFile)
+	pkgFile := filepath.Join(exePath, pkgFileName)
+	return pkgFile, nil
+}
+
+func handleBOM(s string) string {
+	// If the file is a UTF-8 text file with BOM, like Windows Notepad does,
+	// skip BOM. Text files with BOM have "\ufeff" as their first text char.
+	if strings.Contains(s, "\ufeff") {
+		_, i := utf8.DecodeRuneInString(s)
+		return s[i:]
+	}
+	return s
 }

@@ -4,7 +4,28 @@ import (
 	"errors"
 
 	"github.com/mbodm/wingetupd-go/commands"
+	"github.com/mbodm/wingetupd-go/config"
+	"github.com/mbodm/wingetupd-go/winget"
 )
+
+var isInitialized bool
+
+func Init() error {
+	if !isInitialized {
+		if !winget.IsInstalled() {
+			return errors.New("it seems WinGet is not installed on this machine")
+		}
+		exists, err := config.PackageFileExists()
+		if err != nil {
+			return errors.New("todo") // todo: chain
+		}
+		if !exists {
+			return errors.New("the package-file not exists")
+		}
+		isInitialized = true
+	}
+	return nil
+}
 
 type PackageInfo struct {
 	Package          string
