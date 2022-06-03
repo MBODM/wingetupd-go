@@ -5,13 +5,13 @@ import (
 	"github.com/mbodm/wingetupd-go/winget"
 )
 
-func newSearchResult(basics Basics, valid bool) *SearchResult {
-	return &SearchResult{basics, valid}
+func newSearchResult(b basics, valid bool) *SearchResult {
+	return &SearchResult{b, valid}
 }
 
-func newListResult(basics Basics, installed bool, parseResult parser.ParseResult) *ListResult {
+func newListResult(b basics, installed bool, parseResult parser.ParseResult) *ListResult {
 	return &ListResult{
-		Basics:           basics,
+		basics:           b,
 		IsInstalled:      installed,
 		IsUpdatable:      parseResult.HasUpdate,
 		InstalledVersion: parseResult.OldVersion,
@@ -19,10 +19,10 @@ func newListResult(basics Basics, installed bool, parseResult parser.ParseResult
 	}
 }
 
-func newUpgradeResult(basics Basics, updated bool) *UpgradeResult {
-	return &UpgradeResult{basics, updated}
+func newUpgradeResult(b basics, updated bool) *UpgradeResult {
+	return &UpgradeResult{b, updated}
 }
 
-func newBasics(pkg string, winGetResult winget.WinGetResult) *Basics {
-	return &Basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
+func newBasics(pkg string, winGetResult winget.WinGetResult) *basics {
+	return &basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
 }

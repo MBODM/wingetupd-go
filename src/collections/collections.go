@@ -2,40 +2,7 @@ package collections
 
 import "github.com/mbodm/wingetupd-go/core"
 
-type EvalResult struct {
-	ValidPackages        []string
-	InvalidPackages      []string
-	InstalledPackages    []string
-	NonInstalledPackages []string
-	UpdatablePackages    []core.PackageInfo
-	PackageInfos         []core.PackageInfo
-}
-
-func (e EvalResult) HasValidPackages() bool {
-	return len(e.ValidPackages) > 1
-}
-
-func (e EvalResult) HasInvalidPackages() bool {
-	return len(e.InvalidPackages) > 1
-}
-
-func (e EvalResult) HasInstalledPackages() bool {
-	return len(e.InstalledPackages) > 1
-}
-
-func (e EvalResult) HasNonInstalledPackages() bool {
-	return len(e.NonInstalledPackages) > 1
-}
-
-func (e EvalResult) HasUpdatablePackages() bool {
-	return len(e.UpdatablePackages) > 1
-}
-
-func (e EvalResult) HasPackageInfos() bool {
-	return len(e.PackageInfos) > 1
-}
-
-func Eval(packageInfos []core.PackageInfo) *EvalResult {
+func Eval(packageInfos []core.PackageInfo) EvalResult {
 	result := EvalResult{PackageInfos: packageInfos}
 	for _, pi := range packageInfos {
 		if pi.IsValid {
@@ -52,7 +19,7 @@ func Eval(packageInfos []core.PackageInfo) *EvalResult {
 			result.UpdatablePackages = append(result.UpdatablePackages, pi)
 		}
 	}
-	return &result
+	return result
 }
 
 // Golang REALLY! is missing some functional and generic stuff.

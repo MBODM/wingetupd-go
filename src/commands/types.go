@@ -1,10 +1,8 @@
 package commands
 
 // Using golang´s "promoted fields" feature here.
-// But not promoting structs from other packages.
-// I´m unsure if i like such direct dependencies.
 
-type Basics struct {
+type basics struct {
 	Package             string
 	WinGetProcessCall   string
 	WinGetConsoleOutput string
@@ -12,12 +10,12 @@ type Basics struct {
 }
 
 type SearchResult struct {
-	Basics
+	basics
 	IsValid bool
 }
 
 type ListResult struct {
-	Basics
+	basics
 	IsInstalled      bool
 	IsUpdatable      bool
 	InstalledVersion string
@@ -25,6 +23,6 @@ type ListResult struct {
 }
 
 type UpgradeResult struct {
-	Basics
+	basics
 	SuccessfullyUpdated bool
 }

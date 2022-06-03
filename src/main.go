@@ -58,6 +58,6 @@ func main() {
 		console.ShowNonInstalledPackagesError(evalResult.NonInstalledPackages)
 		os.Exit(1)
 	}
-	console.ShowSummary(*evalResult)
+	console.ShowSummary(&evalResult)
 	fmt.Println()
 }

@@ -11,9 +11,9 @@ import (
 
 func prettifyOutput(winGetResult *winget.WinGetResult) {
 	if isSuccessfulSearchOrListOutput(winGetResult) {
-		winGetResult.ConsoleOutput = removeProgressbarChars(winGetResult.ConsoleOutput)
+		winGetResult.ConsoleOutput = removeProgressBarChars(winGetResult.ConsoleOutput)
 		winGetResult.ConsoleOutput = removeLeadingReturn(winGetResult.ConsoleOutput)
-		winGetResult.ConsoleOutput = removeGraphs(winGetResult.ConsoleOutput)
+		winGetResult.ConsoleOutput = removeDownloadGraphs(winGetResult.ConsoleOutput)
 	}
 }
 
@@ -23,7 +23,7 @@ func isSuccessfulSearchOrListOutput(winGetResult *winget.WinGetResult) bool {
 	return (isSearch || isList) && winGetResult.ExitCode == 0
 }
 
-func removeProgressbarChars(output string) string {
+func removeProgressBarChars(output string) string {
 	if strings.Contains(output, "\b") {
 		output = strings.NewReplacer(
 			"\b|", "",
@@ -47,7 +47,7 @@ func removeLeadingReturn(output string) string {
 	return output
 }
 
-func removeGraphs(output string) string {
+func removeDownloadGraphs(output string) string {
 	// A successful search or list output contains "Name " as first text,
 	// or sometimes after weird download graphs. Solution: Remove graphs.
 	// Don´t confuse that download graphs with the \b progress bar chars.
@@ -59,3 +59,17 @@ func removeGraphs(output string) string {
 	}
 	return output
 }
+
+// This is some example of above mentioned download graphs:
+//
+// ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  1%\r ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  2%\r ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 3%\r
+// █▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  5%\r ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  9%\r █████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 18%\r
+// █████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 19%\r █████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 30%\r █████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 31%\r
+// █████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 32%\r █████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 33%\r ██████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 34%\r
+// ██████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 35%\r ██████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 48%\r ██████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 49%\r
+// ███████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 50%\r ███████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 51%\r ███████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 52%\r
+// ███████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 53%\r ████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 54%\r ████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 55%\r
+// ████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒ 56%\r █████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒ 56%\r █████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒ 57%\r
+// █████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒ 59%\r ██████████████████▒▒▒▒▒▒▒▒▒▒▒▒ 60%\r ██████████████████▒▒▒▒▒▒▒▒▒▒▒▒ 61%\r
+// ██████████████████▒▒▒▒▒▒▒▒▒▒▒▒ 62%\r ██████████████████▒▒▒▒▒▒▒▒▒▒▒▒ 63%\r ███████████████████▒▒▒▒▒▒▒▒▒▒▒ 64%\r
+// ███████████████████▒▒▒▒▒▒▒▒▒▒▒ 65%\r ███████████████████▒▒▒▒▒▒▒▒▒▒▒ 66%\r ████████████████████▒▒▒▒▒▒▒▒▒▒ 67%\r
