@@ -2,15 +2,8 @@ package parser
 
 import (
 	"errors"
-	"regexp"
 	"strings"
 )
-
-type ParseResult struct {
-	OldVersion string
-	NewVersion string
-	HasUpdate  bool
-}
 
 func ParseListOutput(listOutput string) (ParseResult, error) {
 	listOutput = strings.TrimSpace(listOutput)
@@ -27,27 +20,4 @@ func ParseListOutput(listOutput string) (ParseResult, error) {
 	oldVersion, newVersion := getVersionStrings(versions)
 	hasUpdate := hasUpdate(listOutput, newVersion)
 	return ParseResult{oldVersion, newVersion, hasUpdate}, nil
-}
-
-func getVersions(listOutput string) []string {
-	regexp := regexp.MustCompile(`\d+(\.\d+)+`)
-	versions := regexp.FindAllString(listOutput, -1)
-	return versions
-}
-
-func getVersionStrings(versions []string) (oldVersion string, newVersion string) {
-	switch len(versions) {
-	case 1:
-		return versions[0], ""
-	case 2:
-		return versions[0], versions[1]
-	default:
-		return "", ""
-	}
-}
-
-func hasUpdate(listOutput string, newVersion string) bool {
-	hasUpdateText := strings.Contains(listOutput, " Verfügbar ") || strings.Contains(listOutput, " Available ")
-	hasNewVersion := newVersion != ""
-	return hasUpdateText && hasNewVersion
 }

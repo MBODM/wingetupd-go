@@ -8,24 +8,18 @@ import (
 	"github.com/mbodm/wingetupd-go/winget"
 )
 
-func Search(pkg string) (bool, error) {
+func Search(pkg string) (SearchResult, error) {
 	pkg = strings.TrimSpace(pkg)
 	if pkg == "" {
-		return false, errors.New("empty string argument")
+		return SearchResult{}, errors.New("empty string argument")
 	}
 	result, err := winget.Run("search --exact --id " + pkg)
 	if err != nil {
-		return false, errors.New("todo") // todo: chain
+		return SearchResult{}, errors.New("todo") // todo: chain
 	}
-	return result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg), nil
-}
-
-type ListResult struct {
-	Package          string
-	IsInstalled      bool
-	IsUpdatable      bool
-	InstalledVersion string
-	UpdateVersion    string
+	prettifyOutput(&result)
+	valid := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
+	return *newSearchResult(*newBasics(pkg, result), valid), nil
 }
 
 func List(pkg string) (ListResult, error) {
@@ -37,35 +31,27 @@ func List(pkg string) (ListResult, error) {
 	if err != nil {
 		return ListResult{}, errors.New("todo")
 	}
+	prettifyOutput(&result)
 	installed := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
 	if installed {
 		parseResult, err := parser.ParseListOutput(result.ConsoleOutput)
 		if err != nil {
 			return ListResult{}, errors.New("todo") // todo: chain
 		}
-		return *newListResult(pkg, installed, parseResult), nil
+		return *newListResult(*newBasics(pkg, result), installed, parseResult), nil
 	}
-	return *newListResult(pkg, false, parser.ParseResult{}), nil
+	return *newListResult(*newBasics(pkg, result), false, parser.ParseResult{}), nil
 }
 
-func Upgrade(pkg string) (bool, error) {
+func Upgrade(pkg string) (UpgradeResult, error) {
 	pkg = strings.TrimSpace(pkg)
 	if pkg == "" {
-		return false, errors.New("empty string argument")
+		return UpgradeResult{}, errors.New("empty string argument")
 	}
 	result, err := winget.Run("upgrade --exact --id " + pkg)
 	if err != nil {
-		return false, errors.New("todo") // todo: chain
+		return UpgradeResult{}, errors.New("todo") // todo: chain
 	}
-	return result.ExitCode == 0, nil
-}
-
-func newListResult(pkg string, installed bool, parseResult parser.ParseResult) *ListResult {
-	return &ListResult{
-		Package:          pkg,
-		IsInstalled:      installed,
-		IsUpdatable:      parseResult.HasUpdate,
-		InstalledVersion: parseResult.OldVersion,
-		UpdateVersion:    parseResult.NewVersion,
-	}
+	updated := result.ExitCode == 0
+	return *newUpgradeResult(*newBasics(pkg, result), updated), nil
 }
