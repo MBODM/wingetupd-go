@@ -18,7 +18,7 @@ func ShowUsage(appName string, hideError bool) {
 	fmt.Println("  --no-log      Don´t create log file (useful when running from a folder without write permissions)")
 	fmt.Println("  --no-confirm  Don´t ask for update confirmation (useful for script integration)")
 	fmt.Println()
-	fmt.Println("For more information have a look at the GitHub page (https://github.com/MBODM/wingetupd")
+	fmt.Println("For more information have a look at the GitHub page (https://github.com/MBODM/wingetupd)")
 }
 
 func ShowPackageFileEntries(entries []string) {
@@ -57,7 +57,7 @@ func ShowSummary(er *collections.EvalResult) {
 	fmt.Printf("%d %s installed:", len(er.InstalledPackages), packageOrPackages(er.InstalledPackages))
 	fmt.Println()
 	listPackages(er.InstalledPackages)
-	fmt.Printf("%d %s updatable:", len(er.UpdatablePackages), packageOrPackages(er.UpdatablePackages))
+	fmt.Printf("%d %s updatable", len(er.UpdatablePackages), packageOrPackages(er.UpdatablePackages))
 	fmt.Print()
 	if er.HasUpdatablePackages() {
 		fmt.Println(":")

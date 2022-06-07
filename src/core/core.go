@@ -1,10 +1,8 @@
 package core
 
 import (
-	"errors"
-
+	"github.com/mbodm/wingetupd-go/app"
 	"github.com/mbodm/wingetupd-go/commands"
-	"github.com/mbodm/wingetupd-go/config"
 	"github.com/mbodm/wingetupd-go/winget"
 )
 
@@ -12,15 +10,9 @@ var isInitialized bool
 
 func Init() error {
 	if !isInitialized {
-		if !winget.IsInstalled() {
-			return errors.New("it seems WinGet is not installed on this machine")
-		}
-		exists, err := config.PackageFileExists()
-		if err != nil {
-			return errors.New("todo") // todo: chain
-		}
-		if !exists {
-			return errors.New("the package-file not exists")
+		_, e := winget.Run("--fuzz")
+		if e != nil {
+			return app.WrapError("", e)
 		}
 		isInitialized = true
 	}
@@ -32,12 +24,12 @@ func Analyze(packages []string, progress func()) ([]PackageInfo, error) {
 	for _, pkg := range packages {
 		searchResult, err := commands.Search(pkg)
 		if err != nil {
-			return packageInfos, errors.New("todo") // todo: chain
+			return packageInfos, app.WrapError("core.Analyze", err)
 		}
 		progress()
 		listResult, err := commands.List(pkg)
 		if err != nil {
-			return packageInfos, errors.New("todo") // todo: chain
+			return packageInfos, app.WrapError("core.Analyze", err)
 		}
 		progress()
 		packageInfo := PackageInfo{

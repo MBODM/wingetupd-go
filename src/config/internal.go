@@ -1,17 +1,18 @@
 package config
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/mbodm/wingetupd-go/app"
 )
 
 func getPkgFilePath() (string, error) {
 	exeFile, err := os.Executable()
 	if err != nil {
-		return "", errors.New("todo") // todo: chain
+		return "", app.WrapError("config.getPkgFilePath", err)
 	}
 	exePath := filepath.Dir(exeFile)
 	pkgFile := filepath.Join(exePath, pkgFileName)

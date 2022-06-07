@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/mbodm/wingetupd-go/app"
 	"github.com/mbodm/wingetupd-go/parser"
 	"github.com/mbodm/wingetupd-go/winget"
 )
@@ -15,7 +16,7 @@ func Search(pkg string) (SearchResult, error) {
 	}
 	result, err := winget.Run("search --exact --id " + pkg)
 	if err != nil {
-		return SearchResult{}, errors.New("todo") // todo: chain
+		return SearchResult{}, app.WrapError("commands.Search", err)
 	}
 	prettifyOutput(&result)
 	valid := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
@@ -29,14 +30,14 @@ func List(pkg string) (ListResult, error) {
 	}
 	result, err := winget.Run("list --exact --id " + pkg)
 	if err != nil {
-		return ListResult{}, errors.New("todo")
+		return ListResult{}, app.WrapError("commands.List", err)
 	}
 	prettifyOutput(&result)
 	installed := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
 	if installed {
 		parseResult, err := parser.ParseListOutput(result.ConsoleOutput)
 		if err != nil {
-			return ListResult{}, errors.New("todo") // todo: chain
+			return ListResult{}, app.WrapError("commands.List", err)
 		}
 		return *newListResult(*newBasics(pkg, result), installed, parseResult), nil
 	}
@@ -50,7 +51,7 @@ func Upgrade(pkg string) (UpgradeResult, error) {
 	}
 	result, err := winget.Run("upgrade --exact --id " + pkg)
 	if err != nil {
-		return UpgradeResult{}, errors.New("todo") // todo: chain
+		return UpgradeResult{}, app.WrapError("commands.Upgrade", err)
 	}
 	updated := result.ExitCode == 0
 	return *newUpgradeResult(*newBasics(pkg, result), updated), nil

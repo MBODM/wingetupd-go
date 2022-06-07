@@ -52,7 +52,7 @@ func removeDownloadGraphs(output string) string {
 	// or sometimes after weird download graphs. Solution: Remove graphs.
 	// Don´t confuse that download graphs with the \b progress bar chars.
 	namePos := strings.Index(output, "Name ")
-	if namePos != -1 && namePos != 1 {
+	if namePos != -1 && namePos != 0 {
 		runes := []rune(output)
 		tail := runes[namePos:]
 		output = string(tail)

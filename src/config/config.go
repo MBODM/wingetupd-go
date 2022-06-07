@@ -2,38 +2,26 @@ package config
 
 import (
 	"bufio"
-	"errors"
 	"os"
 	"strings"
+
+	"github.com/mbodm/wingetupd-go/app"
 )
 
 const pkgFileName = "packages.txt"
-
-func PackageFileExists() (bool, error) {
-	pkgFile, err := getPkgFilePath()
-	if err != nil {
-		return false, errors.New("todo") // todo: chain
-	}
-	_, err = os.Stat(pkgFile)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return false, nil
-		} else {
-			return false, errors.New("todo") // todo: chain
-		}
-	}
-	return true, nil
-}
 
 func ReadPackageFile() ([]string, error) {
 	packages := []string{}
 	pkgFile, err := getPkgFilePath()
 	if err != nil {
-		return packages, errors.New("todo") // todo: chain
+		return packages, app.WrapError("config.ReadPackageFile", err)
 	}
 	file, err := os.Open(pkgFile)
 	if err != nil {
-		return packages, errors.New("todo") // todo: chain
+		if os.IsNotExist(err) {
+			return packages, app.NewAppError("The package-file not exists", err)
+		}
+		return packages, app.WrapError("config.ReadPackageFile", err)
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -46,7 +34,7 @@ func ReadPackageFile() ([]string, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return packages, errors.New("todo") // todo: chain
+		return packages, app.WrapError("config.ReadPackageFile", err)
 	}
 	return packages, nil
 }
