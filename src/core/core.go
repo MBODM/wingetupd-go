@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/mbodm/wingetupd-go/app"
 	"github.com/mbodm/wingetupd-go/commands"
+	"github.com/mbodm/wingetupd-go/config"
 	"github.com/mbodm/wingetupd-go/winget"
 )
 
@@ -10,9 +11,15 @@ var isInitialized bool
 
 func Init() error {
 	if !isInitialized {
-		_, e := winget.Run("--fuzz")
-		if e != nil {
-			return app.WrapError("", e)
+		if !winget.IsInstalled() {
+			return app.NewAppError("It seems WinGet is not installed on this machine", nil)
+		}
+		exists, err := config.PackageFileExists()
+		if err != nil {
+			return app.WrapError("core.Init", err)
+		}
+		if !exists {
+			return app.NewAppError("The package-file not exists", nil)
 		}
 		isInitialized = true
 	}

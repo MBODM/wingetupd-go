@@ -8,7 +8,13 @@ import (
 	"github.com/mbodm/wingetupd-go/app"
 )
 
-const winGetApp = "winge.exe"
+const winGetApp = "winget.exe"
+
+func IsInstalled() bool {
+	execCommand := createCommand("--version")
+	_, err := execCommand.Output()
+	return err == nil
+}
 
 func Run(params string) (WinGetResult, error) {
 	params = strings.TrimSpace(params)

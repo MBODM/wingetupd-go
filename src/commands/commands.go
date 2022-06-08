@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/mbodm/wingetupd-go/app"
@@ -12,7 +11,7 @@ import (
 func Search(pkg string) (SearchResult, error) {
 	pkg = strings.TrimSpace(pkg)
 	if pkg == "" {
-		return SearchResult{}, errors.New("empty string argument")
+		return SearchResult{}, app.EmptyStrArgError("commands.Search")
 	}
 	result, err := winget.Run("search --exact --id " + pkg)
 	if err != nil {
@@ -26,7 +25,7 @@ func Search(pkg string) (SearchResult, error) {
 func List(pkg string) (ListResult, error) {
 	pkg = strings.TrimSpace(pkg)
 	if pkg == "" {
-		return ListResult{}, errors.New("empty string argument")
+		return ListResult{}, app.EmptyStrArgError("commands.List")
 	}
 	result, err := winget.Run("list --exact --id " + pkg)
 	if err != nil {
@@ -47,7 +46,7 @@ func List(pkg string) (ListResult, error) {
 func Upgrade(pkg string) (UpgradeResult, error) {
 	pkg = strings.TrimSpace(pkg)
 	if pkg == "" {
-		return UpgradeResult{}, errors.New("empty string argument")
+		return UpgradeResult{}, app.EmptyStrArgError("commands.Upgrade")
 	}
 	result, err := winget.Run("upgrade --exact --id " + pkg)
 	if err != nil {

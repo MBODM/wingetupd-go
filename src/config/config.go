@@ -2,6 +2,7 @@ package config
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"strings"
 
@@ -9,6 +10,21 @@ import (
 )
 
 const pkgFileName = "packages.txt"
+
+func PackageFileExists() (bool, error) {
+	pkgFile, err := getPkgFilePath()
+	if err != nil {
+		return false, app.WrapError("config.PackageFileExists", err)
+	}
+	_, err = os.Stat(pkgFile)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, app.WrapError("config.PackageFileExists", err)
+	}
+	return true, nil
+}
 
 func ReadPackageFile() ([]string, error) {
 	packages := []string{}
@@ -19,7 +35,7 @@ func ReadPackageFile() ([]string, error) {
 	file, err := os.Open(pkgFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return packages, app.NewAppError("The package-file not exists", err)
+			return packages, app.NewAppError("Package-file not exists", err)
 		}
 		return packages, app.WrapError("config.ReadPackageFile", err)
 	}

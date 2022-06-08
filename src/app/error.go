@@ -25,3 +25,7 @@ func NewAppError(msg string, err error) *AppError {
 func WrapError(funcName string, innerError error) error {
 	return fmt.Errorf("error in "+funcName+"() func: %w", innerError)
 }
+
+func EmptyStrArgError(funcName string) error {
+	return NewAppError("Empty string argument in "+funcName+"() func", nil)
+}
