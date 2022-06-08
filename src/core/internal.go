@@ -1,9 +1,7 @@
-package collections
+package core
 
-import "github.com/mbodm/wingetupd-go/core"
-
-func Eval(packageInfos []core.PackageInfo) EvalResult {
-	result := EvalResult{PackageInfos: packageInfos}
+func createPackageData(packageInfos []PackageInfo) *PackageData {
+	result := &PackageData{PackageInfos: packageInfos}
 	for _, pi := range packageInfos {
 		if pi.IsValid {
 			result.ValidPackages = append(result.ValidPackages, pi.Package)
@@ -16,7 +14,8 @@ func Eval(packageInfos []core.PackageInfo) EvalResult {
 			result.NonInstalledPackages = append(result.NonInstalledPackages, pi.Package)
 		}
 		if pi.IsUpdatable {
-			result.UpdatablePackages = append(result.UpdatablePackages, pi)
+			result.UpdatablePackages = append(result.UpdatablePackages, pi.Package)
+			result.UpdatablePackageInfos = append(result.UpdatablePackageInfos, pi)
 		}
 	}
 	return result

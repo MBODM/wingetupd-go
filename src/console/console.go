@@ -2,9 +2,13 @@ package console
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/mbodm/wingetupd-go/collections"
+	"golang.org/x/term"
+
+	"github.com/mbodm/wingetupd-go/app"
+	"github.com/mbodm/wingetupd-go/core"
 )
 
 func ShowUsage(appName string, hideError bool) {
@@ -49,20 +53,58 @@ func ShowNonInstalledPackagesError(nonInstalledPackages []string) {
 	fmt.Println("Please verify package-file and try again.")
 }
 
-func ShowSummary(er *collections.EvalResult) {
-	fmt.Printf("%d package-file %s processed.", len(er.PackageInfos), entryOrEntries(er.PackageInfos))
+func ShowSummary(packageData *core.PackageData) {
+	fmt.Printf("%d package-file %s processed.", len(packageData.PackageInfos), entryOrEntries(packageData.PackageInfos))
 	fmt.Println()
-	fmt.Printf("%d package-file %s validated.", len(er.ValidPackages), entryOrEntries(er.ValidPackages))
+	fmt.Printf("%d package-file %s validated.", len(packageData.ValidPackages), entryOrEntries(packageData.ValidPackages))
 	fmt.Println()
-	fmt.Printf("%d %s installed:", len(er.InstalledPackages), packageOrPackages(er.InstalledPackages))
+	fmt.Printf("%d %s installed:", len(packageData.InstalledPackages), packageOrPackages(packageData.InstalledPackages))
 	fmt.Println()
-	listPackages(er.InstalledPackages)
-	fmt.Printf("%d %s updatable", len(er.UpdatablePackages), packageOrPackages(er.UpdatablePackages))
+	listPackages(packageData.InstalledPackages)
+	fmt.Printf("%d %s updatable", len(packageData.UpdatablePackages), packageOrPackages(packageData.UpdatablePackages))
 	fmt.Print()
-	if er.HasUpdatablePackages() {
+	if packageData.HasUpdatablePackages() {
 		fmt.Println(":")
-		listUpdateablePackages(er.UpdatablePackages)
+		listUpdateablePackages(packageData.UpdatablePackageInfos)
 	} else {
 		fmt.Println(".")
 	}
+}
+
+func AskUpdateQuestion(updatablePackages []string) (bool, error) {
+	fmt.Printf("Update %d %s ? [y/N]: ", len(updatablePackages), packageOrPackages(updatablePackages))
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		return false, app.WrapError("console.AskUpdateQuestion", err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+	bytes := make([]byte, 1)
+	var b byte
+	for {
+		_, err = os.Stdin.Read(bytes)
+		if err != nil {
+			return false, app.WrapError("console.AskUpdateQuestion", err)
+		}
+		b = bytes[0]
+		// On Windows value 13 means ENTER key and value 3 means STRG+C was pressed.
+		if b == 'y' || b == 'Y' || b == 'n' || b == 'N' || b == 13 || b == 3 {
+			break
+		}
+	}
+	if b == 3 {
+		return false, app.NewAppError("STRG+C", nil)
+	}
+	if b == 13 {
+		fmt.Println("N")
+	} else {
+		fmt.Println(string(b))
+	}
+	return b == 'y' || b == 'Y', nil
+}
+
+func ShowUpdatedPackages(updatedPackages []string) {
+	fmt.Println()
+	fmt.Printf("%d %s updated:", len(updatedPackages), packageOrPackages(updatedPackages))
+	fmt.Println()
+	listPackages(updatedPackages)
 }

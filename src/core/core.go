@@ -26,17 +26,17 @@ func Init() error {
 	return nil
 }
 
-func Analyze(packages []string, progress func()) ([]PackageInfo, error) {
+func Analyze(packages []string, progress func()) (PackageData, error) {
 	packageInfos := []PackageInfo{}
 	for _, pkg := range packages {
 		searchResult, err := commands.Search(pkg)
 		if err != nil {
-			return packageInfos, app.WrapError("core.Analyze", err)
+			return PackageData{}, app.WrapError("core.Analyze", err)
 		}
 		progress()
 		listResult, err := commands.List(pkg)
 		if err != nil {
-			return packageInfos, app.WrapError("core.Analyze", err)
+			return PackageData{}, app.WrapError("core.Analyze", err)
 		}
 		progress()
 		packageInfo := PackageInfo{
@@ -49,5 +49,5 @@ func Analyze(packages []string, progress func()) ([]PackageInfo, error) {
 		}
 		packageInfos = append(packageInfos, packageInfo)
 	}
-	return packageInfos, nil
+	return createPackageData(packageInfos), nil
 }
