@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/mbodm/wingetupd-go/app"
-	"github.com/mbodm/wingetupd-go/eh"
+	"github.com/mbodm/wingetupd-go/errs"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 }
 
 func handleErrors(err error) {
-	var expectedError *eh.ExpectedError
+	var expectedError *errs.ExpectedError
 	if errors.As(err, &expectedError) {
 		// Need this, in case of STRG+C was pressed in update confirmation.
 		if expectedError.Msg == "STRG+C" {

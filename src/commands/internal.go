@@ -13,7 +13,8 @@ func prettifyOutput(winGetResult *winget.WinGetResult) {
 	if isSuccessfulSearchOrListOutput(winGetResult) {
 		winGetResult.ConsoleOutput = removeProgressBarChars(winGetResult.ConsoleOutput)
 		winGetResult.ConsoleOutput = removeLeadingReturn(winGetResult.ConsoleOutput)
-		//winGetResult.ConsoleOutput = removeDownloadGraphs(winGetResult.ConsoleOutput)
+		// Todo: Temporary disabled.
+		// winGetResult.ConsoleOutput = removeDownloadGraphs(winGetResult.ConsoleOutput)
 	}
 }
 
@@ -47,7 +48,7 @@ func removeLeadingReturn(output string) string {
 	return output
 }
 
-// Todo: Temporary removed.
+// Todo: Temporary disabled.
 /*
 func removeDownloadGraphs(output string) string {
 	// A successful search or list output contains "Name " as first text,

@@ -8,7 +8,7 @@ import (
 	"github.com/mbodm/wingetupd-go/config"
 	"github.com/mbodm/wingetupd-go/console"
 	"github.com/mbodm/wingetupd-go/core"
-	"github.com/mbodm/wingetupd-go/eh"
+	"github.com/mbodm/wingetupd-go/errs"
 )
 
 const Name = "wingetupd"
@@ -27,18 +27,18 @@ func Run() (bool, error) {
 	}
 	err := core.Init()
 	if err != nil {
-		return false, eh.WrapError("app.Run", err)
+		return false, errs.WrapError("app.Run", err)
 	}
 	packages, err := config.ReadPackageFile()
 	if err != nil {
-		return false, eh.WrapError("app.Run", err)
+		return false, errs.WrapError("app.Run", err)
 	}
 	console.ShowPackageFileEntries(packages)
 	fmt.Println()
 	fmt.Print("Processing ...")
 	packageData, err := core.AnalyzePackages(packages, func() { fmt.Print(".") })
 	if err != nil {
-		return false, eh.WrapError("app.Run", err)
+		return false, errs.WrapError("app.Run", err)
 	}
 	fmt.Println(" finished.")
 	fmt.Println()
@@ -60,7 +60,7 @@ func Run() (bool, error) {
 		} else {
 			questionResult, err := console.AskUpdateQuestion(packageData.UpdatablePackages)
 			if err != nil {
-				return false, eh.WrapError("app.Run", err)
+				return false, errs.WrapError("app.Run", err)
 			}
 			shallUpdate = questionResult
 		}

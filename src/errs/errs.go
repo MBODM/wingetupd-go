@@ -1,6 +1,6 @@
-package eh
+package errs
 
-// Named this "eh" for "error handling", cause it is used
+// Named this "errs" instead of  "errors", cause using it
 // everywhere (cross cutting concern) and therefore shall
 // be a rather short name. And cause of "great" Go design,
 // names like "error" or "errors" are not usable. Yee-Haw!
@@ -31,10 +31,10 @@ func WrapError(funcName string, innerError error) error {
 	return fmt.Errorf("error in %s() func: %w", funcName, innerError)
 }
 
-func EmptyStrArgError(funcName string) error {
+func ArgIsEmptyStringError(funcName string) error {
 	return fmt.Errorf("empty string argument in " + funcName + "() func")
 }
 
-func NilSliceArgError(funcName string) error {
-	return fmt.Errorf("slice argument is nil in " + funcName + "() func")
+func ArgIsNilError(funcName string) error {
+	return fmt.Errorf("nil argument in " + funcName + "() func")
 }

@@ -1,9 +1,11 @@
 package core
 
 import (
+	"strings"
+
 	"github.com/mbodm/wingetupd-go/commands"
 	"github.com/mbodm/wingetupd-go/config"
-	"github.com/mbodm/wingetupd-go/eh"
+	"github.com/mbodm/wingetupd-go/errs"
 	"github.com/mbodm/wingetupd-go/winget"
 )
 
@@ -12,14 +14,14 @@ var isInitialized bool
 func Init() error {
 	if !isInitialized {
 		if !winget.IsInstalled() {
-			return eh.NewExpectedError("It seems WinGet is not installed on this machine", nil)
+			return errs.NewExpectedError("It seems WinGet is not installed on this machine", nil)
 		}
 		exists, err := config.PackageFileExists()
 		if err != nil {
-			return eh.WrapError("core.Init", err)
+			return errs.WrapError("core.Init", err)
 		}
 		if !exists {
-			return eh.NewExpectedError("The package-file not exists", nil)
+			return errs.NewExpectedError("The package-file not exists", nil)
 		}
 		isInitialized = true
 	}
@@ -28,21 +30,22 @@ func Init() error {
 
 func AnalyzePackages(packages []string, progress func()) (*PackageData, error) {
 	if packages == nil {
-		return nil, eh.NilSliceArgError("core.AnalyzePackages")
+		return nil, errs.ArgIsNilError("core.AnalyzePackages")
 	}
 	packageInfos := []PackageInfo{}
 	for _, pkg := range packages {
+		pkg = strings.TrimSpace(pkg)
 		if pkg != "" {
 			searchResult, err := commands.Search(pkg)
 			if err != nil {
-				return &PackageData{}, eh.WrapError("core.AnalyzePackages", err)
+				return &PackageData{}, errs.WrapError("core.AnalyzePackages", err)
 			}
 			if progress != nil {
 				progress()
 			}
 			listResult, err := commands.List(pkg)
 			if err != nil {
-				return &PackageData{}, eh.WrapError("core.AnalyzePackages", err)
+				return &PackageData{}, errs.WrapError("core.AnalyzePackages", err)
 			}
 			if progress != nil {
 				progress()
@@ -55,7 +58,6 @@ func AnalyzePackages(packages []string, progress func()) (*PackageData, error) {
 				InstalledVersion: listResult.InstalledVersion,
 				UpdateVersion:    listResult.UpdateVersion,
 			}
-
 			packageInfos = append(packageInfos, packageInfo)
 		}
 	}

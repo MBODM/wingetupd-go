@@ -3,36 +3,35 @@ package winget
 import (
 	"errors"
 	"os/exec"
-	"strings"
 
-	"github.com/mbodm/wingetupd-go/eh"
+	"github.com/mbodm/wingetupd-go/errs"
 )
 
 const winGetApp = "winget.exe"
 
 func IsInstalled() bool {
-	execCommand := createCommand("--version")
+	processCall := createProcessCall("--version")
+	execCommand := createCommand(processCall)
 	_, err := execCommand.Output()
 	return err == nil
 }
 
-func Run(params string) (WinGetResult, error) {
-	params = strings.TrimSpace(params)
+func Run(params string) (*WinGetResult, error) {
 	processCall := createProcessCall(params)
-	execCommand := createCommand(params)
+	execCommand := createCommand(processCall)
 	outputBytes, err := execCommand.Output()
 	if err != nil {
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
 			exitCode := convertExitCode(exitError.ExitCode())
 			if exitCode == 1 {
-				return WinGetResult{}, eh.NewExpectedError("WinGet app not installed", err)
+				return &WinGetResult{}, errs.NewExpectedError("WinGet not installed", err)
 			} else {
-				return WinGetResult{processCall, "", exitCode}, nil
+				return &WinGetResult{processCall, "", exitCode}, nil
 			}
 		}
-		return WinGetResult{}, eh.WrapError("winget.Run", err)
+		return &WinGetResult{}, errs.WrapError("winget.Run", err)
 	}
 	consoleOutput := string(outputBytes)
-	return WinGetResult{processCall, consoleOutput, 0}, nil
+	return &WinGetResult{processCall, consoleOutput, 0}, nil
 }

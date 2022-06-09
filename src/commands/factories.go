@@ -5,24 +5,28 @@ import (
 	"github.com/mbodm/wingetupd-go/winget"
 )
 
-func newSearchResult(b basics, valid bool) *SearchResult {
+func newSearchResult(pkg string, winGetResult *winget.WinGetResult, valid bool) *SearchResult {
+	b := basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
 	return &SearchResult{b, valid}
 }
 
-func newListResult(b basics, installed bool, parseResult parser.ParseResult) *ListResult {
-	return &ListResult{
-		basics:           b,
-		IsInstalled:      installed,
-		IsUpdatable:      parseResult.HasUpdate,
-		InstalledVersion: parseResult.OldVersion,
-		UpdateVersion:    parseResult.NewVersion,
+func newListResult(pkg string, winGetResult *winget.WinGetResult, installed bool, parseResult *parser.ParseResult) *ListResult {
+	b := basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
+	lr := &ListResult{
+		basics:      b,
+		IsInstalled: installed,
 	}
+	// ListResult zero values of these fields
+	// are false and "" string, which is fine.
+	if parseResult != nil {
+		lr.IsUpdatable = parseResult.HasUpdate
+		lr.InstalledVersion = parseResult.OldVersion
+		lr.UpdateVersion = parseResult.NewVersion
+	}
+	return lr
 }
 
-func newUpgradeResult(b basics, updated bool) *UpgradeResult {
+func newUpgradeResult(pkg string, winGetResult *winget.WinGetResult, updated bool) *UpgradeResult {
+	b := basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
 	return &UpgradeResult{b, updated}
-}
-
-func newBasics(pkg string, winGetResult winget.WinGetResult) *basics {
-	return &basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
 }

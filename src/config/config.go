@@ -2,42 +2,38 @@ package config
 
 import (
 	"bufio"
-	"errors"
 	"os"
 	"strings"
 
-	"github.com/mbodm/wingetupd-go/eh"
+	"github.com/mbodm/wingetupd-go/errs"
 )
 
 const pkgFileName = "packages.txt"
 
 func PackageFileExists() (bool, error) {
-	pkgFile, err := getPkgFilePath()
+	path, err := getPackageFilePath()
 	if err != nil {
-		return false, eh.WrapError("config.PackageFileExists", err)
+		return false, errs.WrapError("config.PackageFileExists", err)
 	}
-	_, err = os.Stat(pkgFile)
+	result, err := fileExists(path)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return false, nil
-		}
-		return false, eh.WrapError("config.PackageFileExists", err)
+		return false, errs.WrapError("config.PackageFileExists", err)
 	}
-	return true, nil
+	return result, nil
 }
 
 func ReadPackageFile() ([]string, error) {
 	packages := []string{}
 	pkgFile, err := getPkgFilePath()
 	if err != nil {
-		return packages, eh.WrapError("config.ReadPackageFile", err)
+		return packages, errs.WrapError("config.ReadPackageFile", err)
 	}
 	file, err := os.Open(pkgFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return packages, eh.NewExpectedError("Package-file not exists", err)
+			return packages, errs.NewExpectedError("Package-file not exists", err)
 		}
-		return packages, eh.WrapError("config.ReadPackageFile", err)
+		return packages, errs.WrapError("config.ReadPackageFile", err)
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -50,7 +46,7 @@ func ReadPackageFile() ([]string, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return packages, eh.WrapError("config.ReadPackageFile", err)
+		return packages, errs.WrapError("config.ReadPackageFile", err)
 	}
 	return packages, nil
 }

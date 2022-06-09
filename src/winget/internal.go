@@ -1,21 +1,23 @@
 package winget
 
 import (
-	"fmt"
 	"os/exec"
 	"strings"
 )
 
-func createCommand(params string) *exec.Cmd {
-	cmdParam := createProcessCall(params)
-	return exec.Command("cmd", "/C", cmdParam)
+func createProcessCall(winGetParams string) string {
+	// To get the correct exit code (cause of cmd /C workaround),
+	// the complete WinGet call has to be inside a single string.
+	// Also keep in mind: WinGet could be started without params.
+	winGetParams = strings.TrimSpace(winGetParams)
+	processCall := winGetApp + " " + winGetParams
+	return strings.TrimSpace(processCall)
 }
 
-func createProcessCall(winGetParams string) string {
-	// To get a correct exit code (cause of the cmd /C workaround),
-	// the complete WinGet call has to be inside one single string.
-	processCall := fmt.Sprintf("%s %s", winGetApp, winGetParams)
-	return strings.TrimSpace(processCall)
+func createCommand(processCall string) *exec.Cmd {
+	// Since Go is not able to exec Windows store apps,
+	// workaround is to use cmd /C as additional layer.
+	return exec.Command("cmd", "/C", processCall)
 }
 
 func convertExitCode(exitErrorExitCode int) int {
