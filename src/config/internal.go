@@ -6,13 +6,13 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mbodm/wingetupd-go/app"
+	"github.com/mbodm/wingetupd-go/eh"
 )
 
 func getPkgFilePath() (string, error) {
 	exeFile, err := os.Executable()
 	if err != nil {
-		return "", app.WrapError("config.getPkgFilePath", err)
+		return "", eh.WrapError("config.getPkgFilePath", err)
 	}
 	exePath := filepath.Dir(exeFile)
 	pkgFile := filepath.Join(exePath, pkgFileName)

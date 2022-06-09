@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/mbodm/wingetupd-go/app"
+	"github.com/mbodm/wingetupd-go/eh"
 )
 
 const winGetApp = "winget.exe"
@@ -26,12 +26,12 @@ func Run(params string) (WinGetResult, error) {
 		if errors.As(err, &exitError) {
 			exitCode := convertExitCode(exitError.ExitCode())
 			if exitCode == 1 {
-				return WinGetResult{}, app.NewAppError("WinGet app not installed", err)
+				return WinGetResult{}, eh.NewExpectedError("WinGet app not installed", err)
 			} else {
 				return WinGetResult{processCall, "", exitCode}, nil
 			}
 		}
-		return WinGetResult{}, app.WrapError("winget.Run", err)
+		return WinGetResult{}, eh.WrapError("winget.Run", err)
 	}
 	consoleOutput := string(outputBytes)
 	return WinGetResult{processCall, consoleOutput, 0}, nil

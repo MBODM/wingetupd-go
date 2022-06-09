@@ -13,7 +13,7 @@ func prettifyOutput(winGetResult *winget.WinGetResult) {
 	if isSuccessfulSearchOrListOutput(winGetResult) {
 		winGetResult.ConsoleOutput = removeProgressBarChars(winGetResult.ConsoleOutput)
 		winGetResult.ConsoleOutput = removeLeadingReturn(winGetResult.ConsoleOutput)
-		winGetResult.ConsoleOutput = removeDownloadGraphs(winGetResult.ConsoleOutput)
+		//winGetResult.ConsoleOutput = removeDownloadGraphs(winGetResult.ConsoleOutput)
 	}
 }
 
@@ -47,6 +47,8 @@ func removeLeadingReturn(output string) string {
 	return output
 }
 
+// Todo: Temporary removed.
+/*
 func removeDownloadGraphs(output string) string {
 	// A successful search or list output contains "Name " as first text,
 	// or sometimes after weird download graphs. Solution: Remove graphs.
@@ -59,6 +61,7 @@ func removeDownloadGraphs(output string) string {
 	}
 	return output
 }
+*/
 
 // This is some example of above mentioned download graphs:
 //

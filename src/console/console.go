@@ -7,8 +7,8 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/mbodm/wingetupd-go/app"
 	"github.com/mbodm/wingetupd-go/core"
+	"github.com/mbodm/wingetupd-go/eh"
 )
 
 func ShowUsage(appName string, hideError bool) {
@@ -22,7 +22,7 @@ func ShowUsage(appName string, hideError bool) {
 	fmt.Println("  --no-log      Don´t create log file (useful when running from a folder without write permissions)")
 	fmt.Println("  --no-confirm  Don´t ask for update confirmation (useful for script integration)")
 	fmt.Println()
-	fmt.Println("For more information have a look at the GitHub page (https://github.com/MBODM/wingetupd)")
+	fmt.Println("For more information have a look at the GitHub page (https://github.com/mbodm/wingetupd)")
 }
 
 func ShowPackageFileEntries(entries []string) {
@@ -75,15 +75,18 @@ func AskUpdateQuestion(updatablePackages []string) (bool, error) {
 	fmt.Printf("Update %d %s ? [y/N]: ", len(updatablePackages), packageOrPackages(updatablePackages))
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
-		return false, app.WrapError("console.AskUpdateQuestion", err)
+		return false, eh.WrapError("console.AskUpdateQuestion", err)
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
 	bytes := make([]byte, 1)
 	var b byte
 	for {
-		_, err = os.Stdin.Read(bytes)
+		count, err := os.Stdin.Read(bytes)
 		if err != nil {
-			return false, app.WrapError("console.AskUpdateQuestion", err)
+			return false, eh.WrapError("console.AskUpdateQuestion", err)
+		}
+		if count != 1 {
+			return false, eh.NewExpectedError("Read from console failed", nil)
 		}
 		b = bytes[0]
 		// On Windows value 13 means ENTER key and value 3 means STRG+C was pressed.
@@ -92,7 +95,7 @@ func AskUpdateQuestion(updatablePackages []string) (bool, error) {
 		}
 	}
 	if b == 3 {
-		return false, app.NewAppError("STRG+C", nil)
+		return false, eh.NewExpectedError("STRG+C", nil)
 	}
 	if b == 13 {
 		fmt.Println("N")
