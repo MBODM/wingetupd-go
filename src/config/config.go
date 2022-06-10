@@ -8,32 +8,25 @@ import (
 	"github.com/mbodm/wingetupd-go/errs"
 )
 
-const pkgFileName = "packages.txt"
+const packageFileName = "packages.txt"
 
-func PackageFileExists() (bool, error) {
-	path, err := getPackageFilePath()
-	if err != nil {
-		return false, errs.WrapError("config.PackageFileExists", err)
-	}
-	result, err := fileExists(path)
-	if err != nil {
-		return false, errs.WrapError("config.PackageFileExists", err)
-	}
-	return result, nil
+func PackageFileExists() bool {
+	return getPackageFilePath() != ""
 }
 
 func ReadPackageFile() ([]string, error) {
 	packages := []string{}
-	pkgFile, err := getPkgFilePath()
-	if err != nil {
-		return packages, errs.WrapError("config.ReadPackageFile", err)
+	packageFile := getPackageFilePath()
+	notExistsErrMsg := "Package-file not exists"
+	if packageFile == "" {
+		return packages, errs.NewExpectedError(notExistsErrMsg, nil)
 	}
-	file, err := os.Open(pkgFile)
+	file, err := os.Open(packageFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return packages, errs.NewExpectedError("Package-file not exists", err)
+			return packages, errs.NewExpectedError(notExistsErrMsg, err)
 		}
-		return packages, errs.WrapError("config.ReadPackageFile", err)
+		return packages, errs.NewExpectedError("Could not open package-file", err)
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -46,7 +39,7 @@ func ReadPackageFile() ([]string, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return packages, errs.WrapError("config.ReadPackageFile", err)
+		return packages, errs.NewExpectedError("Unknown problem while reading package-file", err)
 	}
 	return packages, nil
 }

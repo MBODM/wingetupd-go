@@ -1,6 +1,7 @@
 package console
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -75,7 +76,7 @@ func AskUpdateQuestion(updatablePackages []string) (bool, error) {
 	fmt.Printf("Update %d %s ? [y/N]: ", len(updatablePackages), packageOrPackages(updatablePackages))
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
-		return false, errs.WrapError("console.AskUpdateQuestion", err)
+		errs.Fatal(err)
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
 	bytes := make([]byte, 1)
@@ -83,10 +84,10 @@ func AskUpdateQuestion(updatablePackages []string) (bool, error) {
 	for {
 		count, err := os.Stdin.Read(bytes)
 		if err != nil {
-			return false, errs.WrapError("console.AskUpdateQuestion", err)
+			errs.Fatal(err)
 		}
 		if count != 1 {
-			return false, errs.NewExpectedError("Read from console failed", nil)
+			errs.Fatal(errors.New("error in console.AskUpdateQuestion() func: invalid os.Stdin.Read() result"))
 		}
 		b = bytes[0]
 		// On Windows value 13 means ENTER key and value 3 means STRG+C was pressed.

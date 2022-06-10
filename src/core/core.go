@@ -16,11 +16,7 @@ func Init() error {
 		if !winget.IsInstalled() {
 			return errs.NewExpectedError("It seems WinGet is not installed on this machine", nil)
 		}
-		exists, err := config.PackageFileExists()
-		if err != nil {
-			return errs.WrapError("core.Init", err)
-		}
-		if !exists {
+		if !config.PackageFileExists() {
 			return errs.NewExpectedError("The package-file not exists", nil)
 		}
 		isInitialized = true
