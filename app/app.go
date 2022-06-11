@@ -2,13 +2,12 @@ package app
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/mbodm/wingetupd-go/args"
-	"github.com/mbodm/wingetupd-go/config"
-	"github.com/mbodm/wingetupd-go/console"
-	"github.com/mbodm/wingetupd-go/core"
-	"github.com/mbodm/wingetupd-go/errs"
+	"example.com/mbodm/wingetupd/args"
+	"example.com/mbodm/wingetupd/config"
+	"example.com/mbodm/wingetupd/console"
+	"example.com/mbodm/wingetupd/core"
+	"example.com/mbodm/wingetupd/errs"
 )
 
 const Name = "wingetupd"
@@ -44,11 +43,11 @@ func Run() (bool, error) {
 	fmt.Println()
 	if packageData.HasInvalidPackages() {
 		console.ShowInvalidPackagesError(packageData.InvalidPackages)
-		os.Exit(1)
+		return false, nil
 	}
 	if packageData.HasNonInstalledPackages() {
 		console.ShowNonInstalledPackagesError(packageData.NonInstalledPackages)
-		os.Exit(1)
+		return false, nil
 	}
 	console.ShowSummary(packageData)
 	fmt.Println()
@@ -58,7 +57,7 @@ func Run() (bool, error) {
 		if args.NoConfirmExists() {
 			shallUpdate = true
 		} else {
-			questionResult, err := console.AskUpdateQuestion(packageData.UpdatablePackages)
+			questionResult, err := console.AskUpdateQuestion(packageData.)
 			if err != nil {
 				return false, errs.WrapError("app.Run", err)
 			}

@@ -1,4 +1,4 @@
-package parser
+package parse
 
 type ParseResult struct {
 	OldVersion string

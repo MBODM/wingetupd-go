@@ -3,7 +3,7 @@ package console
 import (
 	"fmt"
 
-	"github.com/mbodm/wingetupd-go/core"
+	"example.com/mbodm/wingetupd/core"
 )
 
 func entryOrEntries[T any](slice []T) string {

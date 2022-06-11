@@ -1,8 +1,8 @@
-package commands
+package core
 
 import (
-	"github.com/mbodm/wingetupd-go/parser"
-	"github.com/mbodm/wingetupd-go/winget"
+	"example.com/mbodm/wingetupd/parse"
+	"example.com/mbodm/wingetupd/winget"
 )
 
 func newSearchResult(pkg string, winGetResult *winget.WinGetResult, valid bool) *SearchResult {
@@ -10,7 +10,7 @@ func newSearchResult(pkg string, winGetResult *winget.WinGetResult, valid bool) 
 	return &SearchResult{b, valid}
 }
 
-func newListResult(pkg string, winGetResult *winget.WinGetResult, installed bool, parseResult *parser.ParseResult) *ListResult {
+func newListResult(pkg string, winGetResult *winget.WinGetResult, installed bool, parseResult *parse.ParseResult) *ListResult {
 	b := basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
 	lr := &ListResult{
 		basics:      b,

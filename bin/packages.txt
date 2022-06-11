@@ -1,6 +1,0 @@
-﻿CPUID.HWMonitor
-Microsoft.Edge
-Mozilla.Firefox
-Microsoft.VisualStudio.2022.Community
-Microsoft.VisualStudioCode
-GoLang.Go

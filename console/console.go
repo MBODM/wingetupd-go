@@ -1,15 +1,13 @@
 package console
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	"golang.org/x/term"
 
-	"github.com/mbodm/wingetupd-go/core"
-	"github.com/mbodm/wingetupd-go/errs"
+	"example.com/mbodm/wingetupd/core"
 )
 
 func ShowUsage(appName string, hideError bool) {
@@ -26,8 +24,8 @@ func ShowUsage(appName string, hideError bool) {
 	fmt.Println("For more information have a look at the GitHub page (https://github.com/mbodm/wingetupd)")
 }
 
-func ShowPackageFileEntries(entries []string) {
-	fmt.Printf("Found package-file, containing %d %s.", len(entries), entryOrEntries(entries))
+func ShowPackageFileEntries(fileEntries []string) {
+	fmt.Printf("Found package-file, containing %d %s.", len(fileEntries), entryOrEntries(fileEntries))
 	fmt.Println()
 }
 
@@ -54,29 +52,29 @@ func ShowNonInstalledPackagesError(nonInstalledPackages []string) {
 	fmt.Println("Please verify package-file and try again.")
 }
 
-func ShowSummary(packageData *core.PackageData) {
-	fmt.Printf("%d package-file %s processed.", len(packageData.PackageInfos), entryOrEntries(packageData.PackageInfos))
+func ShowSummary(pd *core.PackageData) {
+	fmt.Printf("%d package-file %s processed.", len(pd.PackageInfos), entryOrEntries(pd.PackageInfos))
 	fmt.Println()
-	fmt.Printf("%d package-file %s validated.", len(packageData.ValidPackages), entryOrEntries(packageData.ValidPackages))
+	fmt.Printf("%d package-file %s validated.", len(pd.ValidPackages), entryOrEntries(pd.ValidPackages))
 	fmt.Println()
-	fmt.Printf("%d %s installed:", len(packageData.InstalledPackages), packageOrPackages(packageData.InstalledPackages))
+	fmt.Printf("%d %s installed:", len(pd.InstalledPackages), packageOrPackages(pd.InstalledPackages))
 	fmt.Println()
-	listPackages(packageData.InstalledPackages)
-	fmt.Printf("%d %s updatable", len(packageData.UpdatablePackages), packageOrPackages(packageData.UpdatablePackages))
+	listPackages(pd.InstalledPackages)
+	fmt.Printf("%d %s updatable", len(pd.UpdatablePackages), packageOrPackages(pd.UpdatablePackages))
 	fmt.Print()
-	if packageData.HasUpdatablePackages() {
+	if pd.HasUpdatablePackages() {
 		fmt.Println(":")
-		listUpdateablePackages(packageData.UpdatablePackageInfos)
+		listUpdateablePackages(pd.UpdatablePackageInfos)
 	} else {
 		fmt.Println(".")
 	}
 }
 
-func AskUpdateQuestion(updatablePackages []string) (bool, error) {
+func AskUpdateQuestion(updatablePackages []string, fatalHandler func(error)) (bool, error) {
 	fmt.Printf("Update %d %s ? [y/N]: ", len(updatablePackages), packageOrPackages(updatablePackages))
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
-		errs.Fatal(err)
+		fatalHandler(err)
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
 	bytes := make([]byte, 1)
@@ -84,10 +82,10 @@ func AskUpdateQuestion(updatablePackages []string) (bool, error) {
 	for {
 		count, err := os.Stdin.Read(bytes)
 		if err != nil {
-			errs.Fatal(err)
+			fatalHandler(err)
 		}
 		if count != 1 {
-			errs.Fatal(errors.New("error in console.AskUpdateQuestion() func: invalid os.Stdin.Read() result"))
+			fatalHandler(fmt.Errorf("[console.AskUpdateQuestion] invalid os.Stdin.Read() result"))
 		}
 		b = bytes[0]
 		// On Windows value 13 means ENTER key and value 3 means STRG+C was pressed.
@@ -96,7 +94,7 @@ func AskUpdateQuestion(updatablePackages []string) (bool, error) {
 		}
 	}
 	if b == 3 {
-		return false, errs.NewExpectedError("STRG+C", nil)
+		return false, fmt.Errorf("STRG+C") // Todo
 	}
 	if b == 13 {
 		fmt.Println("N")

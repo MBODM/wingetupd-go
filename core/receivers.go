@@ -20,6 +20,10 @@ func (e *PackageData) HasUpdatablePackages() bool {
 	return len(e.UpdatablePackages) > 1
 }
 
+func (e *PackageData) HasUpdatablePackageInfos() bool {
+	return len(e.UpdatablePackageInfos) > 1
+}
+
 func (e *PackageData) HasPackageInfos() bool {
 	return len(e.PackageInfos) > 1
 }

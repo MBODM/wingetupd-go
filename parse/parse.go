@@ -1,22 +1,21 @@
-package parser
+package parse
 
 import (
+	"fmt"
 	"strings"
-
-	"github.com/mbodm/wingetupd-go/errs"
 )
 
 func ParseListOutput(listOutput string) (*ParseResult, error) {
 	listOutput = strings.TrimSpace(listOutput)
 	if listOutput == "" {
-		return &ParseResult{}, errs.NewExpectedError("WinGet list output is empty", nil)
+		return nil, fmt.Errorf("[parse.ParseListOutput] given WinGet list output is empty string")
 	}
 	versions := getVersions(listOutput)
 	if len(versions) < 1 {
-		return &ParseResult{}, errs.NewExpectedError("WinGet list output not contains any version numbers", nil)
+		return nil, fmt.Errorf("[parse.ParseListOutput] given WinGet list output not contains any version numbers")
 	}
 	if len(versions) > 2 {
-		return &ParseResult{}, errs.NewExpectedError("WinGet list output contains more than 2 version numbers", nil)
+		return nil, fmt.Errorf("[parse.ParseListOutput] given WinGet list output contains more than 2 version numbers")
 	}
 	oldVersion, newVersion := getVersionStrings(versions)
 	hasUpdate := hasUpdate(listOutput, newVersion)

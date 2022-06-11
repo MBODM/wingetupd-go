@@ -16,10 +16,16 @@ import (
 
 var logFileOpened bool
 
+func GetLogFilePath() string {
+	tempDir := os.TempDir()
+	logFile := filepath.Join(tempDir, "wingetupd.log")
+	return logFile
+}
+
 func CreateLog() error {
 	// Needs to be idempotent, cause of os.Create() func.
 	if !logFileOpened {
-		file, err := os.Create(GetLogFile())
+		file, err := os.Create(GetLogFilePath())
 		if err != nil {
 			return NewExpectedError("Could not create log file", err)
 		}
@@ -46,31 +52,18 @@ func CloseLog() error {
 	return nil
 }
 
-func GetLogFile() string {
-	exe, err := os.Executable()
-	if err != nil {
-		// Since log file is not open yet, the log.Println(err) func,
-		// inside the Fatal() func, will print to Stderr. This is ok.
-		Fatal(err)
-	}
-	exe = filepath.Dir(exe)
-	tempDir := os.TempDir()
-	logFile := filepath.Join(tempDir, "wingetupd.log")
-	logFile = filepath.Join(exe, "wingetupdlog.txt")
-	return logFile
-
-}
-
 func Fatal(err error) {
 	// If log file is already open, log.Println() logs to file.
-	// If log file is not open yet, log.Println() logs to Stderr.
+	// If log file is not open yet, log.Println() logs to stderr.
 	log.Println(err)
-	// No checks here, cause CloseLog() is idempotent.
+	// No checks here, cause CloseLog() func is idempotent.
+	// Ignoring "close log file" error for obvious reasons.
 	CloseLog()
+	fmt.Println()
 	fmt.Println(strings.ToUpper("Fatal unexpected error occurred! Application terminated."))
 	fmt.Println()
 	fmt.Println("See log file for deatils:")
-	fmt.Println(GetLogFile())
+	fmt.Println(GetLogFilePath())
 	fmt.Println()
 	fmt.Println("Please contact the developer:")
 	fmt.Println("https://github.com/mbodm")

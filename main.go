@@ -3,23 +3,27 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
-	"log"
 	"os"
 
-	"github.com/mbodm/wingetupd-go/app"
-	"github.com/mbodm/wingetupd-go/errs"
+	"example.com/mbodm/wingetupd/app"
+	"example.com/mbodm/wingetupd/errs"
+	"example.com/mbodm/wingetupd/winget"
 )
 
-func init() {
-
-}
-
 func main() {
-	exit(5)
-	title := fmt.Sprintf("%s %s (by %s %s)", app.Name, app.Version, app.Author, app.Date)
-	fmt.Println(title)
+	if winget.Exists() {
+		result, err := winget.Run("search --exact --id Mozilla.Firefox")
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(result.ConsoleOutput)
+	}
+	os.Exit(1)
 	fmt.Println()
+	fmt.Printf("%s %s (by %s %s)", app.Name, app.Version, app.Author, app.Date)
+	fmt.Println()
+	fmt.Println()
+	intro()
 	result, err := app.Run()
 	if err != nil {
 		handleErrors(err)
@@ -32,11 +36,17 @@ func main() {
 	exit(0)
 }
 
+func intro() {
+	err := errs.CreateLog()
+	if err != nil {
+		handleErrors(err)
+		os.Exit(1)
+	}
+}
+
 func exit(exitCode int) {
-	var w io.Writer = log.Writer()
-	var file = w.(*os.File)
-	file.Close()
-	os.Exit(exitCode)
+	errs.CloseLog()
+	os.Exit(1)
 }
 
 func handleErrors(err error) {

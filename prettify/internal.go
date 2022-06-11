@@ -1,28 +1,11 @@
-package commands
+package prettify
 
 import (
 	"strings"
-
-	"github.com/mbodm/wingetupd-go/winget"
 )
 
 // Not all possible search or list calls produce the same
 // output. So therefore some conditionals are in use here.
-
-func prettifyOutput(winGetResult *winget.WinGetResult) {
-	if isSuccessfulSearchOrListOutput(winGetResult) {
-		winGetResult.ConsoleOutput = removeProgressBarChars(winGetResult.ConsoleOutput)
-		winGetResult.ConsoleOutput = removeLeadingReturn(winGetResult.ConsoleOutput)
-		// Todo: Temporary disabled.
-		// winGetResult.ConsoleOutput = removeDownloadGraphs(winGetResult.ConsoleOutput)
-	}
-}
-
-func isSuccessfulSearchOrListOutput(winGetResult *winget.WinGetResult) bool {
-	isSearch := strings.Contains(winGetResult.ProcessCall, "search --exact --id")
-	isList := strings.Contains(winGetResult.ProcessCall, "list --exact --id")
-	return (isSearch || isList) && winGetResult.ExitCode == 0
-}
 
 func removeProgressBarChars(output string) string {
 	if strings.Contains(output, "\b") {
