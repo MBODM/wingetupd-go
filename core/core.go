@@ -1,54 +1,62 @@
 package core
 
 import (
+	"log"
 	"strings"
 
 	"example.com/mbodm/wingetupd/config"
 	"example.com/mbodm/wingetupd/errs"
+	"example.com/mbodm/wingetupd/shibby"
 	"example.com/mbodm/wingetupd/winget"
 )
 
 var isInitialized bool
 
+func panicHandler(err error) {
+	// Todo
+	log.Fatal(err)
+}
+
 func Init() error {
 	if !isInitialized {
-		if !winget.Exists() {
-			return errs.NewExpectedError("It seems WinGet is not installed on this machine", nil)
+		if err := winget.Exists(); err != nil {
+			return createExpectedError("Init", "It seems WinGet is not installed on this machine")
 		}
-		if !config.PackageFileExists() {
-			return errs.NewExpectedError("The package-file not exists", nil)
+		if !config.PackageFileExists(panicHandler) {
+			return createExpectedError("Init", "The package-file not exists")
 		}
 		isInitialized = true
 	}
 	return nil
 }
 
-func AnalyzePackages(packages []string, progress func()) (*PackageData, error) {
+func AnalyzePackages(packages []string, progress func()) (shibby.IPackageData, error) {
+	const caller = "AnalyzePackages"
 	if packages == nil {
-		return nil, errs.ArgIsNilError("core.AnalyzePackages")
+		return nil, createArgIsNilError(caller, "packages")
 	}
 	if !isInitialized {
-		return nil, errs.CreateError("core.AnalyzePackages", "core is not initialized")
+		return nil, createError(caller, "core is not initialized")
 	}
-	packageInfos := []PackageInfo{}
+	packageInfos := []shibby.PackageInfo{}
 	for _, pkg := range packages {
 		pkg = strings.TrimSpace(pkg)
 		if pkg != "" {
 			searchResult, err := search(pkg)
 			if err != nil {
-				return &PackageData{}, errs.WrapError("core.AnalyzePackages", err)
+				return nil, chainError(caller, err)
 			}
 			if progress != nil {
 				progress()
 			}
 			listResult, err := list(pkg)
 			if err != nil {
-				return &PackageData{}, errs.WrapError("core.AnalyzePackages", err)
+				return nil, chainError(caller, err)
 			}
 			if progress != nil {
 				progress()
 			}
-			packageInfo := PackageInfo{
+			packageInfo := shibby.PackageInfo{
 				Package:          pkg,
 				IsValid:          searchResult.IsValid,
 				IsInstalled:      listResult.IsInstalled,
@@ -59,7 +67,7 @@ func AnalyzePackages(packages []string, progress func()) (*PackageData, error) {
 			packageInfos = append(packageInfos, packageInfo)
 		}
 	}
-	return createPackageData(packageInfos), nil
+	return shibby.NewPackageData(packageInfos), nil
 }
 
 func UpdatePackagesAsync(packageData *PackageData, progress func()) ([]string, error) {

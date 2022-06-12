@@ -3,7 +3,6 @@ package core
 import (
 	"strings"
 
-	"example.com/mbodm/wingetupd/errs"
 	"example.com/mbodm/wingetupd/parse"
 	"example.com/mbodm/wingetupd/prettify"
 	"example.com/mbodm/wingetupd/winget"
@@ -12,12 +11,9 @@ import (
 func search(pkg string) (*SearchResult, error) {
 	result, err := winget.Run("search --exact --id " + pkg)
 	if err != nil {
-		return nil, errs.WrapError("core.search", err)
+		return nil, chainError("search", err)
 	}
-	err = prettify.PrettifyWinGetOutput(result)
-	if err != nil {
-		return nil, errs.WrapError("core.search", err)
-	}
+	result.ConsoleOutput = prettify.PrettifyWinGetOutput(result.ConsoleOutput)
 	valid := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
 	return newSearchResult(pkg, result, valid), nil
 }
@@ -25,19 +21,14 @@ func search(pkg string) (*SearchResult, error) {
 func list(pkg string) (*ListResult, error) {
 	result, err := winget.Run("list --exact --id " + pkg)
 	if err != nil {
-		return nil, errs.WrapError("core.list", err)
+		return nil, chainError("list", err)
 	}
-
-	err = prettify.PrettifyWinGetOutput(result)
-	if err != nil {
-
-	}
-
+	result.ConsoleOutput = prettify.PrettifyWinGetOutput(result.ConsoleOutput)
 	installed := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
 	if installed {
 		parseResult, err := parse.ParseListOutput(result.ConsoleOutput)
 		if err != nil {
-			return nil, errs.WrapError("core.list", err)
+			return nil, chainError("list", err)
 		}
 		return newListResult(pkg, result, installed, parseResult), nil
 	}
@@ -45,18 +36,63 @@ func list(pkg string) (*ListResult, error) {
 }
 
 func upgrade(pkg string) (*UpgradeResult, error) {
-	result, err := runWinGetCommand("upgrade --exact --id ", pkg)
+	result, err := winget.Run("upgrade --exact --id " + pkg)
 	if err != nil {
-		return &UpgradeResult{}, errs.WrapError("core.upgrade", err)
+		return nil, chainError("upgrade", err)
 	}
 	updated := result.ExitCode == 0
 	return newUpgradeResult(pkg, result, updated), nil
 }
 
-func runWinGetCommand(pkg string, cmd string) (*winget.WinGetResult, error) {
-	result, err := winget.Run(cmd + pkg)
-	if err != nil {
-		return nil, errs.WrapError("core.upgrade", err)
+func newSearchResult(pkg string, winGetResult *winget.WinGetResult, valid bool) *SearchResult {
+	b := basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
+	return &SearchResult{b, valid}
+}
+
+func newListResult(pkg string, winGetResult *winget.WinGetResult, installed bool, parseResult *parse.ParseResult) *ListResult {
+	b := basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
+	lr := &ListResult{
+		basics:      b,
+		IsInstalled: installed,
 	}
-	return result, nil
+	// ListResult zero values of these fields
+	// are false and "" string, which is fine.
+	if parseResult != nil {
+		lr.IsUpdatable = parseResult.HasUpdate
+		lr.InstalledVersion = parseResult.OldVersion
+		lr.UpdateVersion = parseResult.NewVersion
+	}
+	return lr
+}
+
+func newUpgradeResult(pkg string, winGetResult *winget.WinGetResult, updated bool) *UpgradeResult {
+	b := basics{pkg, winGetResult.ProcessCall, winGetResult.ConsoleOutput, winGetResult.ExitCode}
+	return &UpgradeResult{b, updated}
+}
+
+// Using golang´s "promoted fields" feature here.
+
+type basics struct {
+	Package             string
+	WinGetProcessCall   string
+	WinGetConsoleOutput string
+	WinGetExitCode      int
+}
+
+type SearchResult struct {
+	basics
+	IsValid bool
+}
+
+type ListResult struct {
+	basics
+	IsInstalled      bool
+	IsUpdatable      bool
+	InstalledVersion string
+	UpdateVersion    string
+}
+
+type UpgradeResult struct {
+	basics
+	SuccessfullyUpdated bool
 }

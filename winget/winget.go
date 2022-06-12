@@ -1,46 +1,43 @@
 package winget
 
-import (
-	"errors"
-	"fmt"
-	"os/exec"
-)
+// A few words about exec.Cmd.Output() exit code handling in Go:
+// If there was no error at all, this means the exit code was 0.
+// If exit code was != 0, there will be an exec.ExitError error.
+// If exit code was == 1, the "cmd /C" workaround not found exe.
+// If something else went wrong, there will be an os/exec error.
+// These facts lead to the somewhat special error handling here.
 
-const winGetApp = "winget.exe"
+const WinGetApp = "winget.exe"
 
-func Exists() bool {
+func Exists() error {
 	processCall := createProcessCall("--version")
 	execCommand := createCommand(processCall)
 	outputBytes, err := execCommand.Output()
+	exitCode, err := handleExecError("Exists", err)
 	if err != nil {
-		// Not differing here, or it ends in complex error handling for user.
-		// If some "cmd /C winget.exe --version" not results in an exit code
-		// of 0 and in returning some text, it is declared non-existing here.
-		return false
+		return err
 	}
-	success := execCommand.ProcessState.ExitCode() == 0
+	if exitCode != 0 {
+		return createError("Exists", WinGetApp+" exit code was not 0")
+	}
 	output := string(outputBytes)
-	return success && output != ""
+	if output == "" {
+		return createError("Exists", WinGetApp+" output was empty")
+	}
+	return nil
 }
 
 func Run(params string) (*WinGetResult, error) {
 	processCall := createProcessCall(params)
 	execCommand := createCommand(processCall)
 	outputBytes, err := execCommand.Output()
+	exitCode, err := handleExecError("Run", err)
 	if err != nil {
-		var exitError *exec.ExitError
-		if errors.As(err, &exitError) {
-			exitCode := convertExitCode(exitError.ExitCode())
-			if exitCode == 1 {
-				// When using cmd /C workaround: An exit code of 1 means WinGet was not found.
-				return nil, fmt.Errorf("[winget.Run] %s not found: %w", winGetApp, err)
-			}
-			// When using cmd /C workaround: An exit code != 1 is a real WinGet app exit code.
-			return &WinGetResult{processCall, "", exitCode}, nil
-		}
-		// When landing here: This means it is not an ExitError, but some other os/exec error.
-		return nil, fmt.Errorf("[winget.Run] %s execution failed: %w", winGetApp, err)
+		return nil, err
+	}
+	if exitCode != 0 {
+		return &WinGetResult{processCall, "", exitCode}, nil
 	}
 	consoleOutput := string(outputBytes)
-	return &WinGetResult{processCall, consoleOutput, 0}, nil
+	return &WinGetResult{processCall, consoleOutput, exitCode}, nil
 }

@@ -1,21 +1,20 @@
 package parse
 
 import (
-	"fmt"
 	"strings"
 )
 
 func ParseListOutput(listOutput string) (*ParseResult, error) {
 	listOutput = strings.TrimSpace(listOutput)
 	if listOutput == "" {
-		return nil, fmt.Errorf("[parse.ParseListOutput] given WinGet list output is empty string")
+		return nil, createError("ParseListOutput", "given WinGet list output is empty string")
 	}
 	versions := getVersions(listOutput)
 	if len(versions) < 1 {
-		return nil, fmt.Errorf("[parse.ParseListOutput] given WinGet list output not contains any version numbers")
+		return nil, createError("ParseListOutput", "given WinGet list output not contains any version numbers")
 	}
 	if len(versions) > 2 {
-		return nil, fmt.Errorf("[parse.ParseListOutput] given WinGet list output contains more than 2 version numbers")
+		return nil, createError("ParseListOutput", "given WinGet list output contains more than 2 version numbers")
 	}
 	oldVersion, newVersion := getVersionStrings(versions)
 	hasUpdate := hasUpdate(listOutput, newVersion)
