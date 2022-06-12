@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"example.com/mbodm/wingetupd/config"
+	"example.com/mbodm/wingetupd/domain"
 	"example.com/mbodm/wingetupd/errs"
-	"example.com/mbodm/wingetupd/shibby"
+	"example.com/mbodm/wingetupd/models"
 	"example.com/mbodm/wingetupd/winget"
 )
 
@@ -30,7 +31,7 @@ func Init() error {
 	return nil
 }
 
-func AnalyzePackages(packages []string, progress func()) (shibby.IPackageData, error) {
+func AnalyzePackages(packages []string, progress func()) ([]models.PackageInfo, error) {
 	const caller = "AnalyzePackages"
 	if packages == nil {
 		return nil, createArgIsNilError(caller, "packages")
@@ -38,7 +39,7 @@ func AnalyzePackages(packages []string, progress func()) (shibby.IPackageData, e
 	if !isInitialized {
 		return nil, createError(caller, "core is not initialized")
 	}
-	packageInfos := []shibby.PackageInfo{}
+	packageInfos := []models.PackageInfo{}
 	for _, pkg := range packages {
 		pkg = strings.TrimSpace(pkg)
 		if pkg != "" {
@@ -56,7 +57,7 @@ func AnalyzePackages(packages []string, progress func()) (shibby.IPackageData, e
 			if progress != nil {
 				progress()
 			}
-			packageInfo := shibby.PackageInfo{
+			packageInfo := domain.PackageInfo{
 				Package:          pkg,
 				IsValid:          searchResult.IsValid,
 				IsInstalled:      listResult.IsInstalled,
@@ -67,7 +68,7 @@ func AnalyzePackages(packages []string, progress func()) (shibby.IPackageData, e
 			packageInfos = append(packageInfos, packageInfo)
 		}
 	}
-	return shibby.NewPackageData(packageInfos), nil
+	return packageInfos, nil
 }
 
 func UpdatePackagesAsync(packageData *PackageData, progress func()) ([]string, error) {

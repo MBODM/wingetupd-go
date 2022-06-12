@@ -1,4 +1,4 @@
-package core
+package console
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/term"
 
-	"example.com/mbodm/wingetupd/core"
+	"example.com/mbodm/wingetupd/models"
 )
 
 func ShowUsage(appName string, hideError bool) {
@@ -25,7 +25,7 @@ func ShowUsage(appName string, hideError bool) {
 }
 
 func ShowPackageFileEntries(fileEntries []string) {
-	fmt.Printf("Found package-file, containing %d %s.", len(fileEntries), entryOrEntries(fileEntries))
+	fmt.Printf("Found package-file, containing %d %s.", len(fileEntries), entryOrEntries(len(fileEntries)))
 	fmt.Println()
 }
 
@@ -52,26 +52,29 @@ func ShowNonInstalledPackagesError(nonInstalledPackages []string) {
 	fmt.Println("Please verify package-file and try again.")
 }
 
-func ShowSummary(pd *core.PackageData) {
-	fmt.Printf("%d package-file %s processed.", len(pd.PackageInfos), entryOrEntries(pd.PackageInfos))
+func ShowSummary(pd models.PackageData) {
+	fmt.Printf("%d package-file %s processed.", pd.CountAll(), entryOrEntries(pd.CountAll()))
 	fmt.Println()
-	fmt.Printf("%d package-file %s validated.", len(pd.ValidPackages), entryOrEntries(pd.ValidPackages))
+	fmt.Printf("%d package-file %s validated.", pd.CountValid(), entryOrEntries(pd.CountValid()))
 	fmt.Println()
-	fmt.Printf("%d %s installed:", len(pd.InstalledPackages), packageOrPackages(pd.InstalledPackages))
+	fmt.Printf("%d %s installed:", pd.CountInstalled(), packageOrPackages(pd.CountInstalled()))
 	fmt.Println()
-	listPackages(pd.InstalledPackages)
-	fmt.Printf("%d %s updatable", len(pd.UpdatablePackages), packageOrPackages(pd.UpdatablePackages))
+	listPackages(pd.GetInstalledPackages())
+	fmt.Printf("%d %s updatable", pd.CountUpdatable(), packageOrPackages(pd.CountUpdatable()))
 	fmt.Print()
-	if pd.HasUpdatablePackages() {
+	if pd.ContainsUpdatable() {
 		fmt.Println(":")
-		listUpdateablePackages(pd.UpdatablePackageInfos)
+		for _, pi := range pd.GetUpdatable() {
+			fmt.Printf("  - %s %s => %s", pi.Package, pi.InstalledVersion, pi.UpdateVersion)
+			fmt.Println()
+		}
 	} else {
 		fmt.Println(".")
 	}
 }
 
 func AskUpdateQuestion(updatablePackages []string, fatalHandler func(error)) (bool, error) {
-	fmt.Printf("Update %d %s ? [y/N]: ", len(updatablePackages), packageOrPackages(updatablePackages))
+	fmt.Printf("Update %d %s ? [y/N]: ", len(updatablePackages), packageOrPackages(len(updatablePackages)))
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
 		fatalHandler(err)
@@ -106,37 +109,7 @@ func AskUpdateQuestion(updatablePackages []string, fatalHandler func(error)) (bo
 
 func ShowUpdatedPackages(updatedPackages []string) {
 	fmt.Println()
-	fmt.Printf("%d %s updated:", len(updatedPackages), packageOrPackages(updatedPackages))
+	fmt.Printf("%d %s updated:", len(updatedPackages), packageOrPackages(len(updatedPackages)))
 	fmt.Println()
 	listPackages(updatedPackages)
-}
-
-func entryOrEntries[T any](slice []T) string {
-	return singularOrPlural(slice, "entry", "entries")
-}
-
-func packageOrPackages[T any](slice []T) string {
-	return singularOrPlural(slice, "package", "packages")
-}
-
-func singularOrPlural[T any](slice []T, singular string, plural string) string {
-	len := len(slice)
-	if len == 1 {
-		return singular
-	}
-	return plural
-}
-
-func listPackages(packages []string) {
-	for _, pkg := range packages {
-		fmt.Printf("  - %s", pkg)
-		fmt.Println()
-	}
-}
-
-func listUpdateablePackages(packageInfos []core.PackageInfo) {
-	for _, pi := range packageInfos {
-		fmt.Printf("  - %s %s => %s", pi.Package, pi.InstalledVersion, pi.UpdateVersion)
-		fmt.Println()
-	}
 }

@@ -1,4 +1,4 @@
-package errs
+package log
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func CreateLog() error {
 	if !logFileOpened {
 		file, err := os.Create(GetLogFilePath())
 		if err != nil {
-			return NewExpectedError("Could not create log file", err)
+			return wrapError("CreateLog", "could not create log file", err)
 		}
 		log.SetOutput(file)
 		logFileOpened = true
@@ -44,7 +44,7 @@ func CloseLog() error {
 		file := writer.(*os.File)
 		err := file.Close()
 		if err != nil {
-			return NewExpectedError("Could not close log file", err)
+			return wrapError("CloseLogFile", "could not close log file", err)
 		}
 		log.SetOutput(os.Stderr)
 		logFileOpened = false
