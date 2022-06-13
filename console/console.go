@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"golang.org/x/term"
-
-	"example.com/mbodm/wingetupd/models"
 )
 
 func ShowUsage(appName string, hideError bool) {
@@ -52,20 +50,20 @@ func ShowNonInstalledPackagesError(nonInstalledPackages []string) {
 	fmt.Println("Please verify package-file and try again.")
 }
 
-func ShowSummary(pd models.PackageData) {
-	fmt.Printf("%d package-file %s processed.", pd.CountAll(), entryOrEntries(pd.CountAll()))
+func ShowSummary(fileEntries, validPackages, installedPackages []string, updates []Update) {
+	fmt.Printf("%d package-file %s processed.", len(fileEntries), entryOrEntries(len(fileEntries)))
 	fmt.Println()
-	fmt.Printf("%d package-file %s validated.", pd.CountValid(), entryOrEntries(pd.CountValid()))
+	fmt.Printf("%d package-file %s validated.", len(validPackages), entryOrEntries(len(validPackages)))
 	fmt.Println()
-	fmt.Printf("%d %s installed:", pd.CountInstalled(), packageOrPackages(pd.CountInstalled()))
+	fmt.Printf("%d %s installed:", len(installedPackages), packageOrPackages(len(installedPackages)))
 	fmt.Println()
-	listPackages(pd.GetInstalledPackages())
-	fmt.Printf("%d %s updatable", pd.CountUpdatable(), packageOrPackages(pd.CountUpdatable()))
+	listPackages(installedPackages)
+	fmt.Printf("%d %s updatable", len(updates), packageOrPackages(len(updates)))
 	fmt.Print()
-	if pd.ContainsUpdatable() {
+	if len(updates) > 0 {
 		fmt.Println(":")
-		for _, pi := range pd.GetUpdatable() {
-			fmt.Printf("  - %s %s => %s", pi.Package, pi.InstalledVersion, pi.UpdateVersion)
+		for _, update := range updates {
+			fmt.Printf("  - %s %s => %s", update.Package, update.InstalledVersion, update.UpdateVersion)
 			fmt.Println()
 		}
 	} else {

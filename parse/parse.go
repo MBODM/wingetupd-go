@@ -4,19 +4,19 @@ import (
 	"strings"
 )
 
-func ParseListOutput(listOutput string) (*ParseResult, error) {
-	listOutput = strings.TrimSpace(listOutput)
-	if listOutput == "" {
-		return nil, createError("ParseListOutput", "given WinGet list output is empty string")
+func ParseVersions(winGetListOutput string) (*ParseResult, error) {
+	caller := "ParseVersions"
+	winGetListOutput = strings.TrimSpace(winGetListOutput)
+	if winGetListOutput == "" {
+		return nil, createError(caller, "given WinGet list output is empty string")
 	}
-	versions := getVersions(listOutput)
+	versions := getVersions(winGetListOutput)
 	if len(versions) < 1 {
-		return nil, createError("ParseListOutput", "given WinGet list output not contains any version numbers")
+		return nil, createError(caller, "given WinGet list output not contains any version numbers")
 	}
 	if len(versions) > 2 {
-		return nil, createError("ParseListOutput", "given WinGet list output contains more than 2 version numbers")
+		return nil, createError(caller, "given WinGet list output contains more than 2 version numbers")
 	}
 	oldVersion, newVersion := getVersionStrings(versions)
-	hasUpdate := hasUpdate(listOutput, newVersion)
-	return &ParseResult{oldVersion, newVersion, hasUpdate}, nil
+	return &ParseResult{oldVersion, newVersion}, nil
 }

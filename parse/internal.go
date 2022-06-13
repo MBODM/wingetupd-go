@@ -2,16 +2,15 @@ package parse
 
 import (
 	"regexp"
-	"strings"
 )
 
-func getVersions(listOutput string) []string {
+func getVersions(winGetListOutput string) []string {
 	regexp := regexp.MustCompile(`\d+(\.\d+)+`)
-	versions := regexp.FindAllString(listOutput, -1)
+	versions := regexp.FindAllString(winGetListOutput, -1)
 	return versions
 }
 
-func getVersionStrings(versions []string) (oldVersion string, newVersion string) {
+func getVersionStrings(versions []string) (oldVersion, newVersion string) {
 	switch len(versions) {
 	case 1:
 		return versions[0], ""
@@ -20,10 +19,4 @@ func getVersionStrings(versions []string) (oldVersion string, newVersion string)
 	default:
 		return "", ""
 	}
-}
-
-func hasUpdate(listOutput string, newVersion string) bool {
-	hasUpdateText := strings.Contains(listOutput, " Verfügbar ") || strings.Contains(listOutput, " Available ")
-	hasNewVersion := newVersion != ""
-	return hasUpdateText && hasNewVersion
 }

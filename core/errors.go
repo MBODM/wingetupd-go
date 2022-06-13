@@ -22,11 +22,19 @@ func (e *ExpectedError) Unwrap() error {
 	return e.Err
 }
 
-func createError(caller string, msg string) error {
+func createError(caller, msg string) error {
 	return fmt.Errorf("[core.%s] %s", caller, msg)
 }
 
-func wrapError(caller string, msg string, err error) error {
+func createArgIsNilError(caller, arg string) error {
+	return createError(caller, fmt.Sprintf("argument '%s' is nil", arg))
+}
+
+func createArgIsEmptyStringError(caller, arg string) error {
+	return createError(caller, fmt.Sprintf("argument '%s' is empty string", arg))
+}
+
+func wrapError(caller, msg string, err error) error {
 	return fmt.Errorf("[core.%s] %s: %w", caller, msg, err)
 }
 
@@ -34,29 +42,20 @@ func chainError(caller string, err error) error {
 	return wrapError(caller, "chained", err)
 }
 
-func createArgIsNilError(caller string, arg string) error {
-	msg := fmt.Sprintf("argument '%s' is nil", arg)
-	return createError(caller, msg)
+func createExpectedError(caller, msg string) error {
+	return &ExpectedError{fmt.Sprintf("[core.%s] %s", caller, msg), nil}
 }
 
-func createArgIsEmptyStringError(caller string, arg string) error {
-	msg := fmt.Sprintf("argument '%s' is empty string", arg)
-	return createError(caller, msg)
+func wrapIntoExpectedError(caller, msg string, err error) error {
+	// Not using chained text here, cause Error() does this.
+	e := createExpectedError(caller, msg)
+	e.(*ExpectedError).Err = err
+	return e
 }
 
-func createExpectedError(caller string, msg string) error {
-	msg = fmt.Sprintf("[core.%s] %s", caller, msg)
-	return &ExpectedError{msg, nil}
-}
-
-func wrapIntoExpectedError(caller string, msg string, err error) error {
-	msg = fmt.Sprintf("[core.%s] %s", caller, msg)
-	return &ExpectedError{msg, err}
-}
-
-func unrecoverableError(panicHandler func(error), err error) {
-	if panicHandler != nil {
-		panicHandler(err)
-	}
-	panic(err)
-}
+// func unrecoverableError(panicHandler func(error), err error) {
+// 	if panicHandler != nil {
+// 		panicHandler(err)
+// 	}
+// 	panic(err)
+// }
