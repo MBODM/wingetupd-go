@@ -10,7 +10,7 @@ func getVersions(winGetListOutput string) []string {
 	return versions
 }
 
-func getVersionStrings(versions []string) (oldVersion, newVersion string) {
+func getVersionStrings(versions []string) (oldVersion string, newVersion string) {
 	switch len(versions) {
 	case 1:
 		return versions[0], ""

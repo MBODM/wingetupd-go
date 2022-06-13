@@ -4,6 +4,6 @@ import (
 	"fmt"
 )
 
-func createError(caller, msg string) error {
+func createError(caller string, msg string) error {
 	return fmt.Errorf("[parse.%s] %s", caller, msg)
 }

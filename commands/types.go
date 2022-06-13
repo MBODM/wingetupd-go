@@ -2,14 +2,14 @@ package commands
 
 // Functional dependencies
 
-type WinGetListParser func(winGetListOutput string) *WinGetListParserResult
+type WinGetListParser func(winGetListOutput string) (*WinGetListParserResult, error)
 
 type WinGetListParserResult struct {
 	OldVersion string
 	NewVersion string
 }
 
-type WinGetRunner func(winGetParams string) *WinGetRunnerResult
+type WinGetRunner func(winGetParams string) (*WinGetRunnerResult, error)
 
 type WinGetRunnerResult struct {
 	ProcessCall   string

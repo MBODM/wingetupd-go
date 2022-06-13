@@ -1,4 +1,4 @@
-package log
+package logging
 
 import (
 	"fmt"
@@ -44,7 +44,7 @@ func CloseLog() error {
 		file := writer.(*os.File)
 		err := file.Close()
 		if err != nil {
-			return wrapError("CloseLogFile", "could not close log file", err)
+			return wrapError("CloseLog", "could not close log file", err)
 		}
 		log.SetOutput(os.Stderr)
 		logFileOpened = false

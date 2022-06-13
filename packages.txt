@@ -3,5 +3,4 @@ Microsoft.Edge
 Mozilla.Firefox
 Microsoft.VisualStudio.2022.Community
 Microsoft.VisualStudioCode
-ZoomUMX
 OpenJS.NodeJS.LTS

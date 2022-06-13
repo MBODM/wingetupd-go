@@ -6,12 +6,13 @@ import (
 
 func Search(pkg string, runner WinGetRunner) (*SearchResult, error) {
 	caller := "Search"
-	if runner == nil {
-		return nil, createArgIsNilError(caller, "runner")
+	pkg, err := guard(caller, pkg, runner)
+	if err != nil {
+		return nil, err
 	}
-	result := runner(createCommand("search", pkg))
-	if result == nil {
-		return nil, createRunnerError(caller)
+	result, err := runner(createCommand("search", pkg))
+	if err != nil {
+		return nil, runnerError(caller, err)
 	}
 	valid := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
 	return newSearchResult(pkg, result, valid), nil
@@ -19,21 +20,22 @@ func Search(pkg string, runner WinGetRunner) (*SearchResult, error) {
 
 func List(pkg string, runner WinGetRunner, parser WinGetListParser) (*ListResult, error) {
 	caller := "List"
-	if runner == nil {
-		return nil, createArgIsNilError(caller, "runner")
+	pkg, err := guard(caller, pkg, runner)
+	if err != nil {
+		return nil, err
 	}
 	if parser == nil {
-		return nil, createArgIsNilError(caller, "parser")
+		return nil, argIsNilError(caller, "parser")
 	}
-	result := runner(createCommand("list", pkg))
-	if result == nil {
-		return nil, createRunnerError(caller)
+	result, err := runner(createCommand("list", pkg))
+	if err != nil {
+		return nil, runnerError(caller, err)
 	}
 	installed := result.ExitCode == 0 && strings.Contains(result.ConsoleOutput, pkg)
 	if installed {
-		parserResult := parser(result.ConsoleOutput)
-		if parserResult == nil {
-			return nil, createParserError(caller)
+		parserResult, err := parser(result.ConsoleOutput)
+		if err != nil {
+			return nil, parserError(caller, err)
 		}
 		return newListResult(pkg, result, installed, parserResult), nil
 	}
@@ -42,12 +44,13 @@ func List(pkg string, runner WinGetRunner, parser WinGetListParser) (*ListResult
 
 func Upgrade(pkg string, runner WinGetRunner) (*UpgradeResult, error) {
 	caller := "Upgrade"
-	if runner == nil {
-		return nil, createArgIsNilError(caller, "runner")
+	pkg, err := guard(caller, pkg, runner)
+	if err != nil {
+		return nil, err
 	}
-	result := runner(createCommand("upgrade", pkg))
-	if result == nil {
-		return nil, createRunnerError(caller)
+	result, err := runner(createCommand("upgrade", pkg))
+	if err != nil {
+		return nil, runnerError(caller, err)
 	}
 	updated := result.ExitCode == 0
 	return newUpgradeResult(pkg, result, updated), nil

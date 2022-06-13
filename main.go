@@ -6,24 +6,18 @@ import (
 	"os"
 
 	"example.com/mbodm/wingetupd/app"
-	"example.com/mbodm/wingetupd/errs"
-	"example.com/mbodm/wingetupd/winget"
+	"example.com/mbodm/wingetupd/logging"
 )
 
 func main() {
-	if winget.Exists() {
-		result, err := winget.Run("search --exact --id Mozilla.Firefox")
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println(result.ConsoleOutput)
-	}
-	os.Exit(1)
 	fmt.Println()
 	fmt.Printf("%s %s (by %s %s)", app.Name, app.Version, app.Author, app.Date)
 	fmt.Println()
 	fmt.Println()
-	intro()
+	if err := logging.CreateLog(); err != nil {
+		fmt.Println("Error: Could not create log file.")
+		os.Exit(1)
+	}
 	result, err := app.Run()
 	if err != nil {
 		handleErrors(err)
@@ -36,21 +30,13 @@ func main() {
 	exit(0)
 }
 
-func intro() {
-	err := errs.CreateLog()
-	if err != nil {
-		handleErrors(err)
-		os.Exit(1)
-	}
-}
-
 func exit(exitCode int) {
-	errs.CloseLog()
+	logging.CloseLog()
 	os.Exit(1)
 }
 
 func handleErrors(err error) {
-	var expectedError *errs.ExpectedError
+	var expectedError *app.ExpectedError
 	if errors.As(err, &expectedError) {
 		// Need this, in case of STRG+C was pressed in update confirmation.
 		if expectedError.Msg == "STRG+C" {
